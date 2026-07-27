@@ -1,5 +1,6 @@
 export * from './types.js';
 export {CommandCompiler} from './compiler.js';
+export {StreamAdapter} from './stream_adapter.js';
 export {
   DefaultSevenZipRunner,
   MockSevenZipRunner,

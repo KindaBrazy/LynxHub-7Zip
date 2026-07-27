@@ -1,8 +1,8 @@
 import fs from 'fs';
 import path from 'path';
-import {Readable} from 'stream';
 import {getDefaultRunner} from './runner.js';
 import {CommandCompiler} from './compiler.js';
+import {StreamAdapter} from './stream_adapter.js';
 import type {
   DecompressOptions,
   DecompressResult,
@@ -101,22 +101,7 @@ export function decompressStream(
   inputOrOptions?: StreamInput | DecompressStreamOptions,
   optionsArg?: DecompressStreamOptions,
 ): DecompressStreamResult {
-  let input: StreamInput;
-  let options: DecompressStreamOptions | undefined;
-
-  if (
-    inputOrOptions &&
-    typeof inputOrOptions === 'object' &&
-    !Buffer.isBuffer(inputOrOptions) &&
-    !(inputOrOptions instanceof Uint8Array) &&
-    !(inputOrOptions instanceof Readable)
-  ) {
-    input = undefined;
-    options = inputOrOptions as DecompressStreamOptions;
-  } else {
-    input = inputOrOptions as StreamInput;
-    options = optionsArg;
-  }
+  const {input, options} = StreamAdapter.parseArgs(inputOrOptions, optionsArg);
 
   let isStreamInput = true;
   let archivePath: string | undefined = options?.archivePath;

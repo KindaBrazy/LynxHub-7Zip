@@ -1,7 +1,7 @@
 import path from 'path';
-import {Readable} from 'stream';
 import {getDefaultRunner} from './runner.js';
 import {CommandCompiler} from './compiler.js';
+import {StreamAdapter} from './stream_adapter.js';
 import type {
   ArchiveFormat,
   CompressionLevel,
@@ -89,27 +89,7 @@ export function compressStream(
   inputOrOptions?: StreamInput | CompressStreamOptions,
   optionsArg?: CompressStreamOptions,
 ): CompressStreamResult {
-  let input: StreamInput;
-  let options: CompressStreamOptions | undefined;
-
-  if (
-    inputOrOptions &&
-    typeof inputOrOptions === 'object' &&
-    !Buffer.isBuffer(inputOrOptions) &&
-    !(inputOrOptions instanceof Uint8Array) &&
-    !(inputOrOptions instanceof Readable)
-  ) {
-    if (Array.isArray(inputOrOptions) && inputOrOptions.every(i => typeof i === 'string')) {
-      input = inputOrOptions as string[];
-      options = optionsArg;
-    } else {
-      input = undefined;
-      options = inputOrOptions as CompressStreamOptions;
-    }
-  } else {
-    input = inputOrOptions as StreamInput;
-    options = optionsArg;
-  }
+  const {input, options} = StreamAdapter.parseArgs(inputOrOptions, optionsArg);
 
   let isStreamInput = true;
   let fileInputs: string[] | undefined = undefined;

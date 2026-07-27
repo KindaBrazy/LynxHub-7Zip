@@ -22,6 +22,7 @@ export {
 export {compress, createSFX, compressStream} from './compressor.js';
 export {decompress, extract, decompressStream} from './decompressor.js';
 export {
+  ArchiveInspector,
   listArchive,
   parseListArchiveOutput,
   getSupportedFeatures,

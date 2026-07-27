@@ -41,7 +41,7 @@ describe('Compress Module', () => {
 
   describe('Integration Test: Real compression execution', () => {
     const testDir = path.join(process.cwd(), 'temp_test_compress_folder');
-    const testOutputFile = path.join(process.cwd(), 'temp_test_output.7z');
+    const testOutputFile = path.join(testDir, 'output.7z');
     let execPath: string;
 
     beforeAll(async () => {

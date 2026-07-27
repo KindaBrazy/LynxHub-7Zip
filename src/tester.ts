@@ -1,6 +1,7 @@
 import path from 'path';
 import {getDefaultRunner} from './runner.js';
 import {CommandCompiler} from './compiler.js';
+import {ArchiveInspector} from './inspector.js';
 import type {TestArchiveOptions, TestArchiveResult} from './types.js';
 
 export const buildTestArchiveArgs = CommandCompiler.testArchive;
@@ -10,7 +11,7 @@ export const buildTestArchiveArgs = CommandCompiler.testArchive;
  */
 export function parseTestArchiveOutput(
   stdout: string,
-  _stderr: string,
+  stderr: string,
   exitCode: number,
 ): {
   valid: boolean;
@@ -18,33 +19,7 @@ export function parseTestArchiveOutput(
   testedFoldersCount?: number;
   totalSize?: number;
 } {
-  const isValid = exitCode === 0 && /Everything is O[kK]/i.test(stdout);
-
-  let testedFilesCount: number | undefined;
-  let testedFoldersCount: number | undefined;
-  let totalSize: number | undefined;
-
-  const filesMatch = stdout.match(/^Files:\s*(\d+)/m);
-  if (filesMatch) {
-    testedFilesCount = parseInt(filesMatch[1], 10);
-  }
-
-  const foldersMatch = stdout.match(/^Folders:\s*(\d+)/m);
-  if (foldersMatch) {
-    testedFoldersCount = parseInt(foldersMatch[1], 10);
-  }
-
-  const sizeMatch = stdout.match(/^Size:\s*(\d+)/m);
-  if (sizeMatch) {
-    totalSize = parseInt(sizeMatch[1], 10);
-  }
-
-  return {
-    valid: isValid,
-    testedFilesCount,
-    testedFoldersCount,
-    totalSize,
-  };
+  return ArchiveInspector.testArchive(stdout, stderr, exitCode);
 }
 
 /**

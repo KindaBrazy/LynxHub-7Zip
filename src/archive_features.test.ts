@@ -2,6 +2,7 @@ import {describe, it, expect, beforeAll, afterAll} from 'vitest';
 import fs from 'fs';
 import path from 'path';
 import {
+  ArchiveInspector,
   compress,
   listArchive,
   parseListArchiveOutput,
@@ -48,8 +49,8 @@ describe('Archive Features Module', () => {
     });
   });
 
-  describe('Unit Tests: Output Parsers', () => {
-    it('should parse listArchive stdout accurately', () => {
+  describe('Unit Tests: Output Parsers via ArchiveInspector', () => {
+    it('should parse listArchive stdout accurately via ArchiveInspector', () => {
       const sampleListStdout = `
 7-Zip 24.09 (x64) : Copyright (c) 1999-2024 Igor Pavlov : 2024-11-28
 
@@ -81,16 +82,19 @@ Attributes = D
 Encrypted = -
 `;
 
-      const parsedList = parseListArchiveOutput(sampleListStdout);
+      const parsedList = ArchiveInspector.listArchive(sampleListStdout);
       expect(parsedList.rawInfo['Type']).toBe('7z');
       expect(parsedList.items).toHaveLength(2);
       expect(parsedList.items[0].path).toBe('file1.txt');
       expect(parsedList.items[0].size).toBe(100);
       expect(parsedList.items[0].crc).toBe('A1B2C3D4');
       expect(parsedList.items[1].isDir).toBe(true);
+
+      // Verify standalone delegate export works identically
+      expect(parseListArchiveOutput(sampleListStdout)).toEqual(parsedList);
     });
 
-    it('should parse calculateHash stdout accurately', () => {
+    it('should parse calculateHash stdout accurately via ArchiveInspector', () => {
       const sampleHashStdout = `
 7-Zip 24.09 (x64) : Copyright (c) 1999-2024 Igor Pavlov : 2024-11-28
 
@@ -105,16 +109,19 @@ E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855            12
 SHA256 for data:   E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855
 `;
 
-      const parsedHash = parseCalculateHashOutput(sampleHashStdout);
+      const parsedHash = ArchiveInspector.calculateHash(sampleHashStdout);
       expect(parsedHash.files).toHaveLength(1);
       expect(parsedHash.files[0].path).toBe('file1.txt');
       expect(parsedHash.files[0].hashes['SHA256']).toBe(
         'E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855',
       );
       expect(parsedHash.summary['SHA256']).toBe('E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855');
+
+      // Verify standalone delegate export works identically
+      expect(parseCalculateHashOutput(sampleHashStdout)).toEqual(parsedHash);
     });
 
-    it('should parse testArchive stdout accurately', () => {
+    it('should parse testArchive stdout accurately via ArchiveInspector', () => {
       const sampleTestStdout = `
 7-Zip 24.09 (x64) : Copyright (c) 1999-2024 Igor Pavlov : 2024-11-28
 
@@ -127,11 +134,37 @@ Size: 500
 Compressed: 1234
 `;
 
-      const parsedTest = parseTestArchiveOutput(sampleTestStdout, '', 0);
+      const parsedTest = ArchiveInspector.testArchive(sampleTestStdout, '', 0);
       expect(parsedTest.valid).toBe(true);
       expect(parsedTest.testedFilesCount).toBe(2);
       expect(parsedTest.testedFoldersCount).toBe(1);
       expect(parsedTest.totalSize).toBe(500);
+
+      // Verify standalone delegate export works identically
+      expect(parseTestArchiveOutput(sampleTestStdout, '', 0)).toEqual(parsedTest);
+    });
+
+    it('should parse supportedFeatures stdout accurately via ArchiveInspector', () => {
+      const sampleFeaturesStdout = `
+7-Zip 24.09 (x64) : Copyright (c) 1999-2024 Igor Pavlov : 2024-11-28
+
+Formats:
+ 0 7z 7z
+ 1 Zip zip jar xpi
+
+Codecs:
+ 0 LZMA
+ 1 LZMA2
+
+Hashers:
+ 32 CRC32
+ 64 CRC64
+`;
+      const parsedFeatures = ArchiveInspector.supportedFeatures(sampleFeaturesStdout);
+      expect(parsedFeatures.version).toBe('24.09 (x64)');
+      expect(parsedFeatures.formats).toHaveLength(2);
+      expect(parsedFeatures.codecs).toHaveLength(2);
+      expect(parsedFeatures.hashers).toHaveLength(2);
     });
   });
 

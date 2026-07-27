@@ -1,6 +1,7 @@
 {
   "name": "@lynxhub/7zip",
   "version": "0.10.0",
+  "description": "Modern, zero-config, cross-platform 7-Zip wrapper for Node.js and TypeScript.",
   "keywords": [
     "7zip",
     "7-zip",
@@ -23,10 +24,30 @@
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "sideEffects": false,
   "scripts": {
     "test": "vitest run",
     "test:watch": "vitest",
     "build": "tsc",
+    "prepublishOnly": "npm run validate && npm run build",
     "publishPackage": "npm run build && npm publish --access public",
     "start": "npm run build && node dist/index.js",
     "linter": "prettier --write src --list-different && eslint --fix src",

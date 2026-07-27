@@ -7,3 +7,4 @@ export {
   extractBinaryIfNeeded,
   ensure7ZipExecutable,
 } from './downloader.js';
+export {compress, buildCompressArgs, inferFormatFromExtension, mapCompressionLevel} from './compressor.js';

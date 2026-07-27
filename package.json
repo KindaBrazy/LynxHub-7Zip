@@ -28,7 +28,8 @@
     "publishPackage": "npm run build && npm publish --access public",
     "start": "npm run build && node dist/index.js",
     "linter": "prettier --write src --list-different && eslint --fix src",
-    "typecheck": "tsc --noEmit -p tsconfig.json --composite false"
+    "typecheck": "tsc --noEmit -p tsconfig.json --composite false",
+    "validate": "npm run linter && npm run typecheck"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

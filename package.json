@@ -1,0 +1,32 @@
+{
+  "name": "@lynxhub/7zip",
+  "version": "0.10.0",
+  "keywords": [
+    "7zip",
+    "7-zip",
+    "zip",
+    "compress",
+    "decompress",
+    "unpack",
+    "extract"
+  ],
+  "homepage": "https://github.com/KindaBrazy/LynxHub-7Zip#readme",
+  "bugs": {
+    "url": "https://github.com/KindaBrazy/LynxHub-7Zip/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/KindaBrazy/LynxHub-7Zip.git"
+  },
+  "license": "MIT",
+  "author": "KindaBrazy",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "publishPackage": "npm run build && npm publish --access public",
+    "start": "npm run build && node dist/index.js",
+    "fix-linter": "prettier --write src --list-different && eslint --fix src"
+  }
+}

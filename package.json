@@ -1,6 +1,6 @@
 {
   "name": "@lynxhub/7zip",
-  "version": "0.10.0",
+  "version": "0.10.1",
   "description": "Modern, zero-config, cross-platform 7-Zip wrapper for Node.js and TypeScript.",
   "keywords": [
     "7zip",

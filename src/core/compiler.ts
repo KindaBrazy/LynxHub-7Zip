@@ -14,7 +14,7 @@ import type {
   RenamePair,
   TestArchiveOptions,
   UpdateArchiveOptions,
-} from './types.js';
+} from '../types/index.js';
 
 function normalizeTargets(targets?: string | string[]): string[] {
   if (!targets) return [];

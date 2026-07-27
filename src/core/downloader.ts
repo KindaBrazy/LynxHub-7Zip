@@ -3,7 +3,7 @@ import path from 'path';
 import os from 'os';
 import {execSync} from 'child_process';
 import {Buffer} from 'buffer';
-import type {DownloadOptions, ReleaseAsset, ReleaseInfo, SupportedArch, SupportedOS} from './types.js';
+import type {DownloadOptions, ReleaseAsset, ReleaseInfo, SupportedArch, SupportedOS} from '../types/index.js';
 
 /**
  * Gets default user download directory: ~/Downloads/LynxHub

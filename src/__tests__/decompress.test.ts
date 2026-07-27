@@ -1,7 +1,7 @@
 import {describe, it, expect, beforeAll, afterAll} from 'vitest';
 import fs from 'fs';
 import path from 'path';
-import {compress, decompress, extract, CommandCompiler, ensure7ZipExecutable} from './index.js';
+import {compress, decompress, extract, CommandCompiler, ensure7ZipExecutable} from '../index.js';
 
 describe('Decompress Module', () => {
   describe('Argument Building', () => {

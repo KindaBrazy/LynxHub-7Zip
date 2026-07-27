@@ -1,4 +1,4 @@
-import {ensure7ZipExecutable, getDefaultDownloadPath} from './index.js';
+import {ensure7ZipExecutable, getDefaultDownloadPath} from '../src/index.js';
 import {execSync} from 'child_process';
 
 async function run() {

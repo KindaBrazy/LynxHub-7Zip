@@ -2,7 +2,7 @@ import {execFile, spawn, type ChildProcess} from 'child_process';
 import {PassThrough} from 'stream';
 import {ensure7ZipExecutable} from './downloader.js';
 import {StreamAdapter} from './stream_adapter.js';
-import type {DownloadOptions, StreamDoneResult, StreamInput} from './types.js';
+import type {DownloadOptions, StreamDoneResult, StreamInput} from '../types/index.js';
 
 export interface ExecOptions {
   /**

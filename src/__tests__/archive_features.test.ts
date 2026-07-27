@@ -12,7 +12,7 @@ import {
   parseTestArchiveOutput,
   CommandCompiler,
   ensure7ZipExecutable,
-} from './index.js';
+} from '../index.js';
 
 describe('Archive Features Module', () => {
   describe('Unit Tests: Argument Builders', () => {

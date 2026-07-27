@@ -1,6 +1,6 @@
 import path from 'path';
-import {getDefaultRunner} from './runner.js';
-import {CommandCompiler} from './compiler.js';
+import {getDefaultRunner} from '../core/runner.js';
+import {CommandCompiler} from '../core/compiler.js';
 import type {
   DeleteFromArchiveOptions,
   DeleteFromArchiveResult,
@@ -9,7 +9,7 @@ import type {
   RenamePair,
   UpdateArchiveOptions,
   UpdateArchiveResult,
-} from './types.js';
+} from '../types/index.js';
 
 export const buildDeleteFromArchiveArgs = CommandCompiler.deleteFromArchive;
 

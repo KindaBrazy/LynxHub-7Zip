@@ -9,7 +9,7 @@ import {
   decompressStream,
   compress,
   CommandCompiler,
-} from './index.js';
+} from '../index.js';
 
 describe('Stream & Feature Info Module', () => {
   describe('Unit Tests: Argument Builders', () => {

@@ -1,8 +1,8 @@
 import path from 'path';
-import {getDefaultRunner} from './runner.js';
-import {CommandCompiler} from './compiler.js';
+import {getDefaultRunner} from '../core/runner.js';
+import {CommandCompiler} from '../core/compiler.js';
 import {ArchiveInspector} from './inspector.js';
-import type {TestArchiveOptions, TestArchiveResult} from './types.js';
+import type {TestArchiveOptions, TestArchiveResult} from '../types/index.js';
 
 export const buildTestArchiveArgs = CommandCompiler.testArchive;
 

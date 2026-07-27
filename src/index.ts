@@ -1,6 +1,6 @@
-export * from './types.js';
-export {CommandCompiler} from './compiler.js';
-export {StreamAdapter} from './stream_adapter.js';
+export * from './types/index.js';
+export {CommandCompiler} from './core/compiler.js';
+export {StreamAdapter} from './core/stream_adapter.js';
 export {
   DefaultSevenZipRunner,
   MockSevenZipRunner,
@@ -10,7 +10,7 @@ export {
   type ExecOptions,
   type ExecResult,
   type StreamResult,
-} from './runner.js';
+} from './core/runner.js';
 export {
   getDefaultDownloadPath,
   fetchLatestRelease,
@@ -18,17 +18,17 @@ export {
   downloadFile,
   extractBinaryIfNeeded,
   ensure7ZipExecutable,
-} from './downloader.js';
-export {compress, createSFX, compressStream} from './compressor.js';
-export {decompress, extract, decompressStream} from './decompressor.js';
+} from './core/downloader.js';
+export {compress, createSFX, compressStream} from './features/compressor.js';
+export {decompress, extract, decompressStream} from './features/decompressor.js';
 export {
   ArchiveInspector,
   listArchive,
   parseListArchiveOutput,
   getSupportedFeatures,
   parseGetSupportedFeaturesOutput,
-} from './inspector.js';
-export {calculateHash, parseCalculateHashOutput} from './hasher.js';
-export {testArchive, parseTestArchiveOutput} from './tester.js';
-export {runBenchmark, parseBenchmarkOutput} from './benchmarker.js';
-export {deleteFromArchive, renameInArchive, updateArchive} from './editor.js';
+} from './features/inspector.js';
+export {calculateHash, parseCalculateHashOutput} from './features/hasher.js';
+export {testArchive, parseTestArchiveOutput} from './features/tester.js';
+export {runBenchmark, parseBenchmarkOutput} from './features/benchmarker.js';
+export {deleteFromArchive, renameInArchive, updateArchive} from './features/editor.js';

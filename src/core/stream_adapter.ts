@@ -1,6 +1,6 @@
 import type {ChildProcess} from 'child_process';
 import {PassThrough, Readable} from 'stream';
-import type {StreamDoneResult, StreamInput} from './types.js';
+import type {StreamDoneResult, StreamInput} from '../types/index.js';
 import type {StreamResult} from './runner.js';
 
 export class StreamAdapter {

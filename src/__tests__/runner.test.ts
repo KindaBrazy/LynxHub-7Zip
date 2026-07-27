@@ -1,11 +1,16 @@
 import {describe, it, expect, beforeEach, afterEach} from 'vitest';
-import {DefaultSevenZipRunner, MockSevenZipRunner, getDefaultRunner, setDefaultRunner} from './runner.js';
-import {compress} from './compressor.js';
-import {decompress} from './decompressor.js';
-import {listArchive} from './inspector.js';
-import {calculateHash} from './hasher.js';
-import {testArchive} from './tester.js';
-import {runBenchmark} from './benchmarker.js';
+import {
+  DefaultSevenZipRunner,
+  MockSevenZipRunner,
+  getDefaultRunner,
+  setDefaultRunner,
+  compress,
+  decompress,
+  listArchive,
+  calculateHash,
+  testArchive,
+  runBenchmark,
+} from '../index.js';
 
 describe('SevenZipRunner Seam & Mock Integration', () => {
   let mockRunner: MockSevenZipRunner;

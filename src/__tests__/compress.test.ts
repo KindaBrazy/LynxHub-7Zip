@@ -1,7 +1,7 @@
 import {describe, it, expect, beforeAll, afterAll} from 'vitest';
 import fs from 'fs';
 import path from 'path';
-import {compress, CommandCompiler, ensure7ZipExecutable} from './index.js';
+import {compress, CommandCompiler, ensure7ZipExecutable} from '../index.js';
 
 describe('Compress Module', () => {
   it('should infer correct format from file extension', () => {
@@ -41,7 +41,7 @@ describe('Compress Module', () => {
 
   describe('Integration Test: Real compression execution', () => {
     const testDir = path.join(process.cwd(), 'temp_test_compress_folder');
-    const testOutputFile = path.join(testDir, 'output.7z');
+    const testOutputFile = path.join(process.cwd(), 'temp_test_compress_output.7z');
     let execPath: string;
 
     beforeAll(async () => {

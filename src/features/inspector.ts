@@ -1,6 +1,6 @@
 import path from 'path';
-import {getDefaultRunner} from './runner.js';
-import {CommandCompiler} from './compiler.js';
+import {getDefaultRunner} from '../core/runner.js';
+import {CommandCompiler} from '../core/compiler.js';
 import type {
   ArchiveItem,
   BenchmarkMetric,
@@ -13,7 +13,7 @@ import type {
   SupportedFeaturesResult,
   SupportedFormatInfo,
   SupportedHasherInfo,
-} from './types.js';
+} from '../types/index.js';
 
 export const buildListArchiveArgs = CommandCompiler.listArchive;
 

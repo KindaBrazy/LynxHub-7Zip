@@ -1,8 +1,8 @@
 import path from 'path';
-import {getDefaultRunner} from './runner.js';
-import {CommandCompiler} from './compiler.js';
+import {getDefaultRunner} from '../core/runner.js';
+import {CommandCompiler} from '../core/compiler.js';
 import {ArchiveInspector} from './inspector.js';
-import type {CalculateHashOptions, CalculateHashResult, HashAlgorithm, HashItem} from './types.js';
+import type {CalculateHashOptions, CalculateHashResult, HashAlgorithm, HashItem} from '../types/index.js';
 
 export const buildCalculateHashArgs = CommandCompiler.calculateHash;
 

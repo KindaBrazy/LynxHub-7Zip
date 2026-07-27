@@ -9,7 +9,7 @@ import {
   updateArchive,
   CommandCompiler,
   ensure7ZipExecutable,
-} from './index.js';
+} from '../index.js';
 
 describe('Archive Editing Module', () => {
   describe('Unit Tests: Argument Builders', () => {

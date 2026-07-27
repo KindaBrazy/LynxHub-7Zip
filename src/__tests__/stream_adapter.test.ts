@@ -2,7 +2,7 @@ import {describe, expect, it} from 'vitest';
 import {Readable} from 'stream';
 import {EventEmitter} from 'events';
 import type {ChildProcess} from 'child_process';
-import {StreamAdapter} from './stream_adapter.js';
+import {StreamAdapter} from '../index.js';
 
 describe('StreamAdapter', () => {
   describe('parseArgs', () => {

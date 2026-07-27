@@ -1,7 +1,7 @@
 import path from 'path';
-import {getDefaultRunner} from './runner.js';
-import {CommandCompiler} from './compiler.js';
-import {StreamAdapter} from './stream_adapter.js';
+import {getDefaultRunner} from '../core/runner.js';
+import {CommandCompiler} from '../core/compiler.js';
+import {StreamAdapter} from '../core/stream_adapter.js';
 import type {
   ArchiveFormat,
   CompressionLevel,
@@ -11,7 +11,7 @@ import type {
   CompressStreamResult,
   StreamDoneResult,
   StreamInput,
-} from './types.js';
+} from '../types/index.js';
 
 export const inferFormatFromExtension = CommandCompiler.inferFormatFromExtension;
 export const mapCompressionLevel = CommandCompiler.mapCompressionLevel;

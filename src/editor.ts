@@ -1,6 +1,5 @@
 import path from 'path';
-import {execFile} from 'child_process';
-import {ensure7ZipExecutable} from './downloader.js';
+import {getDefaultRunner} from './runner.js';
 import {mapCompressionLevel} from './compressor.js';
 import type {
   DeleteFromArchiveOptions,
@@ -125,39 +124,18 @@ export async function deleteFromArchive(
   }
 
   const workingDirectory = options?.workingDir || process.cwd();
-  const execPath = options?.executablePath || (await ensure7ZipExecutable(options?.downloadOptions));
+  const runner = options?.runner || getDefaultRunner();
   const resolvedArchivePath = path.resolve(workingDirectory, archivePath);
   const args = buildDeleteFromArchiveArgs(archivePath, targets, options);
+  const result = await runner.exec(args, options);
 
-  return new Promise((resolve, reject) => {
-    execFile(
-      execPath,
-      args,
-      {
-        cwd: workingDirectory,
-        maxBuffer: 10 * 1024 * 1024,
-      },
-      (error, stdoutStr, stderrStr) => {
-        const stdout = stdoutStr.toString();
-        const stderr = stderrStr.toString();
-        const exitCode = error && typeof error.code === 'number' ? error.code : 0;
-
-        if (error && exitCode > 1) {
-          return reject(
-            new Error(`7-Zip delete command failed with exit code ${exitCode}:\n${stderr || stdout || error.message}`),
-          );
-        }
-
-        resolve({
-          archivePath: resolvedArchivePath,
-          targets: targetList,
-          stdout,
-          stderr,
-          exitCode,
-        });
-      },
-    );
-  });
+  return {
+    archivePath: resolvedArchivePath,
+    targets: targetList,
+    stdout: result.stdout,
+    stderr: result.stderr,
+    exitCode: result.exitCode,
+  };
 }
 
 /**
@@ -233,39 +211,18 @@ export async function renameInArchive(
   }
 
   const workingDirectory = options?.workingDir || process.cwd();
-  const execPath = options?.executablePath || (await ensure7ZipExecutable(options?.downloadOptions));
+  const runner = options?.runner || getDefaultRunner();
   const resolvedArchivePath = path.resolve(workingDirectory, archivePath);
   const args = buildRenameInArchiveArgs(archivePath, renames, options);
+  const result = await runner.exec(args, options);
 
-  return new Promise((resolve, reject) => {
-    execFile(
-      execPath,
-      args,
-      {
-        cwd: workingDirectory,
-        maxBuffer: 10 * 1024 * 1024,
-      },
-      (error, stdoutStr, stderrStr) => {
-        const stdout = stdoutStr.toString();
-        const stderr = stderrStr.toString();
-        const exitCode = error && typeof error.code === 'number' ? error.code : 0;
-
-        if (error && exitCode > 1) {
-          return reject(
-            new Error(`7-Zip rename command failed with exit code ${exitCode}:\n${stderr || stdout || error.message}`),
-          );
-        }
-
-        resolve({
-          archivePath: resolvedArchivePath,
-          renames: pairs,
-          stdout,
-          stderr,
-          exitCode,
-        });
-      },
-    );
-  });
+  return {
+    archivePath: resolvedArchivePath,
+    renames: pairs,
+    stdout: result.stdout,
+    stderr: result.stderr,
+    exitCode: result.exitCode,
+  };
 }
 
 /**
@@ -375,37 +332,16 @@ export async function updateArchive(
 
   const targetList = normalizeTargets(targets);
   const workingDirectory = options?.workingDir || process.cwd();
-  const execPath = options?.executablePath || (await ensure7ZipExecutable(options?.downloadOptions));
+  const runner = options?.runner || getDefaultRunner();
   const resolvedArchivePath = path.resolve(workingDirectory, archivePath);
   const args = buildUpdateArchiveArgs(archivePath, targets, options);
+  const result = await runner.exec(args, options);
 
-  return new Promise((resolve, reject) => {
-    execFile(
-      execPath,
-      args,
-      {
-        cwd: workingDirectory,
-        maxBuffer: 10 * 1024 * 1024,
-      },
-      (error, stdoutStr, stderrStr) => {
-        const stdout = stdoutStr.toString();
-        const stderr = stderrStr.toString();
-        const exitCode = error && typeof error.code === 'number' ? error.code : 0;
-
-        if (error && exitCode > 1) {
-          return reject(
-            new Error(`7-Zip update command failed with exit code ${exitCode}:\n${stderr || stdout || error.message}`),
-          );
-        }
-
-        resolve({
-          archivePath: resolvedArchivePath,
-          targets: targetList,
-          stdout,
-          stderr,
-          exitCode,
-        });
-      },
-    );
-  });
+  return {
+    archivePath: resolvedArchivePath,
+    targets: targetList,
+    stdout: result.stdout,
+    stderr: result.stderr,
+    exitCode: result.exitCode,
+  };
 }

@@ -1,6 +1,5 @@
 import path from 'path';
-import {execFile} from 'child_process';
-import {ensure7ZipExecutable} from './downloader.js';
+import {getDefaultRunner} from './runner.js';
 import type {TestArchiveOptions, TestArchiveResult} from './types.js';
 
 /**
@@ -115,40 +114,35 @@ export async function testArchive(archivePath: string, options?: TestArchiveOpti
   }
 
   const workingDirectory = options?.workingDir || process.cwd();
-  const execPath = options?.executablePath || (await ensure7ZipExecutable(options?.downloadOptions));
+  const runner = options?.runner || getDefaultRunner();
   const resolvedArchivePath = path.resolve(workingDirectory, archivePath);
   const args = buildTestArchiveArgs(archivePath, options);
 
-  return new Promise(resolve => {
-    execFile(
-      execPath,
-      args,
-      {
-        cwd: workingDirectory,
-        maxBuffer: 10 * 1024 * 1024,
-      },
-      (error, stdoutStr, stderrStr) => {
-        const stdout = stdoutStr.toString();
-        const stderr = stderrStr.toString();
-        const exitCode = error && typeof error.code === 'number' ? error.code : 0;
+  let stdout: string;
+  let stderr: string;
+  let exitCode: number;
 
-        const {valid, testedFilesCount, testedFoldersCount, totalSize} = parseTestArchiveOutput(
-          stdout,
-          stderr,
-          exitCode,
-        );
+  try {
+    const result = await runner.exec(args, options);
+    stdout = result.stdout;
+    stderr = result.stderr;
+    exitCode = result.exitCode;
+  } catch (err: any) {
+    stdout = err.stdout || '';
+    stderr = err.stderr || err.message || '';
+    exitCode = err.exitCode || 2;
+  }
 
-        resolve({
-          valid,
-          archivePath: resolvedArchivePath,
-          testedFilesCount,
-          testedFoldersCount,
-          totalSize,
-          stdout,
-          stderr,
-          exitCode,
-        });
-      },
-    );
-  });
+  const {valid, testedFilesCount, testedFoldersCount, totalSize} = parseTestArchiveOutput(stdout, stderr, exitCode);
+
+  return {
+    valid,
+    archivePath: resolvedArchivePath,
+    testedFilesCount,
+    testedFoldersCount,
+    totalSize,
+    stdout,
+    stderr,
+    exitCode,
+  };
 }

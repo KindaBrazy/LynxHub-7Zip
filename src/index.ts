@@ -1,5 +1,15 @@
 export * from './types.js';
 export {
+  DefaultSevenZipRunner,
+  MockSevenZipRunner,
+  getDefaultRunner,
+  setDefaultRunner,
+  type ISevenZipRunner,
+  type ExecOptions,
+  type ExecResult,
+  type StreamResult,
+} from './runner.js';
+export {
   getDefaultDownloadPath,
   fetchLatestRelease,
   selectAssetForPlatform,

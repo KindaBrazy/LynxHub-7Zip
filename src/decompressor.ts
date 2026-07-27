@@ -1,8 +1,7 @@
 import fs from 'fs';
 import path from 'path';
-import {execFile, spawn} from 'child_process';
-import {PassThrough, Readable} from 'stream';
-import {ensure7ZipExecutable} from './downloader.js';
+import {Readable} from 'stream';
+import {getDefaultRunner} from './runner.js';
 import type {
   DecompressOptions,
   DecompressResult,
@@ -159,50 +158,29 @@ export async function decompress(
   const workingDirectory = finalOptions?.workingDir || process.cwd();
   const targetDir = finalOutputDir ? path.resolve(workingDirectory, finalOutputDir) : workingDirectory;
 
-  const execPath = finalOptions?.executablePath || (await ensure7ZipExecutable(finalOptions?.downloadOptions));
+  const runner = finalOptions?.runner || getDefaultRunner();
   const args = buildDecompressArgs(archivePath, targetDir, finalOptions);
+  const result = await runner.exec(args, finalOptions);
 
-  return new Promise((resolve, reject) => {
-    execFile(
-      execPath,
-      args,
-      {
-        cwd: workingDirectory,
-        maxBuffer: 10 * 1024 * 1024,
-      },
-      async (error, stdout, stderr) => {
-        const exitCode = error && typeof error.code === 'number' ? error.code : 0;
+  const resolvedArchivePath = path.resolve(workingDirectory, archivePath);
 
-        // 7-Zip exit code 0 = normal, exit code 1 = non-fatal warning
-        if (error && exitCode > 1) {
-          return reject(
-            new Error(`7-Zip extraction failed with exit code ${exitCode}:\n${stderr || stdout || error.message}`),
-          );
-        }
+  if (finalOptions?.deleteArchive) {
+    try {
+      if (fs.existsSync(resolvedArchivePath)) {
+        await fs.promises.unlink(resolvedArchivePath);
+      }
+    } catch (unlinkErr) {
+      console.warn(`Failed to delete source archive after extraction: ${unlinkErr}`);
+    }
+  }
 
-        const resolvedArchivePath = path.resolve(workingDirectory, archivePath);
-
-        // Delete archive if user requested deleteArchive on successful extraction
-        if (finalOptions?.deleteArchive) {
-          try {
-            if (fs.existsSync(resolvedArchivePath)) {
-              await fs.promises.unlink(resolvedArchivePath);
-            }
-          } catch (unlinkErr) {
-            console.warn(`Failed to delete source archive after extraction: ${unlinkErr}`);
-          }
-        }
-
-        resolve({
-          archivePath: resolvedArchivePath,
-          outputDir: targetDir,
-          stdout: stdout.toString(),
-          stderr: stderr.toString(),
-          exitCode,
-        });
-      },
-    );
-  });
+  return {
+    archivePath: resolvedArchivePath,
+    outputDir: targetDir,
+    stdout: result.stdout,
+    stderr: result.stderr,
+    exitCode: result.exitCode,
+  };
 }
 
 /**
@@ -305,96 +283,7 @@ export function decompressStream(
     archivePath = input;
   }
 
-  const workingDir = options?.workingDir || process.cwd();
+  const runner = options?.runner || getDefaultRunner();
   const args = buildDecompressStreamArgs(options, isStreamInput, archivePath);
-
-  const inStream = new PassThrough();
-  const outStream = new Readable({
-    read() {},
-  }) as DecompressStreamResult;
-
-  let resolvePromise: (res: StreamDoneResult) => void;
-  let rejectPromise: (err: Error) => void;
-
-  const donePromise = new Promise<StreamDoneResult>((resolve, reject) => {
-    resolvePromise = resolve;
-    rejectPromise = reject;
-  });
-
-  (outStream as any).stdin = inStream;
-  (outStream as any).promise = donePromise;
-
-  const stdoutChunks: Buffer[] = [];
-  const stderrChunks: Buffer[] = [];
-
-  let execPathPromise: Promise<string>;
-  if (options?.executablePath) {
-    execPathPromise = Promise.resolve(options.executablePath);
-  } else {
-    execPathPromise = ensure7ZipExecutable(options?.downloadOptions);
-  }
-
-  execPathPromise
-    .then(execPath => {
-      const child = spawn(execPath, args, {
-        cwd: workingDir,
-        stdio: ['pipe', 'pipe', 'pipe'],
-      });
-
-      (outStream as any).process = child;
-
-      inStream.pipe(child.stdin);
-
-      child.stdout.on('data', chunk => {
-        const buf = Buffer.from(chunk);
-        stdoutChunks.push(buf);
-        outStream.push(buf);
-      });
-
-      child.stderr.on('data', chunk => {
-        stderrChunks.push(Buffer.from(chunk));
-      });
-
-      child.on('error', err => {
-        outStream.destroy(err);
-        rejectPromise(err);
-      });
-
-      child.on('close', code => {
-        const exitCode = code ?? 0;
-        const stdoutStr = Buffer.concat(stdoutChunks).toString();
-        const stderrStr = Buffer.concat(stderrChunks).toString();
-
-        outStream.push(null);
-
-        if (exitCode > 1) {
-          const errorMsg = `7-Zip stream decompression failed with exit code ${exitCode}:\n${stderrStr || stdoutStr}`;
-          const err = new Error(errorMsg);
-          outStream.destroy(err);
-          rejectPromise(err);
-        } else {
-          resolvePromise({
-            exitCode,
-            stdout: stdoutStr,
-            stderr: stderrStr,
-          });
-        }
-      });
-
-      // Handle piped / buffer input if provided
-      if (isStreamInput && input) {
-        if (input instanceof Readable) {
-          input.pipe(inStream);
-        } else if (Buffer.isBuffer(input) || input instanceof Uint8Array) {
-          inStream.write(input);
-          inStream.end();
-        }
-      }
-    })
-    .catch(err => {
-      outStream.destroy(err);
-      rejectPromise(err);
-    });
-
-  return outStream;
+  return runner.stream(args, isStreamInput ? input : undefined, options);
 }

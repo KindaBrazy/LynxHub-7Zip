@@ -1,5 +1,4 @@
-import {execFile} from 'child_process';
-import {ensure7ZipExecutable} from './downloader.js';
+import {getDefaultRunner} from './runner.js';
 import type {BenchmarkMetric, BenchmarkOptions, BenchmarkResult} from './types.js';
 
 /**
@@ -176,29 +175,8 @@ export function parseBenchmarkOutput(stdout: string, stderr: string, exitCode: n
  * @param options Optional configuration parameters for benchmark.
  */
 export async function runBenchmark(options?: BenchmarkOptions): Promise<BenchmarkResult> {
-  const execPath = options?.executablePath || (await ensure7ZipExecutable(options?.downloadOptions));
+  const runner = options?.runner || getDefaultRunner();
   const args = buildBenchmarkArgs(options);
-
-  return new Promise((resolve, reject) => {
-    execFile(
-      execPath,
-      args,
-      {
-        cwd: options?.workingDir || process.cwd(),
-        maxBuffer: 10 * 1024 * 1024,
-      },
-      (error, stdout, stderr) => {
-        const exitCode = error && typeof error.code === 'number' ? error.code : 0;
-
-        if (error && exitCode > 1) {
-          return reject(
-            new Error(`7-Zip benchmark failed with exit code ${exitCode}:\n${stderr || stdout || error.message}`),
-          );
-        }
-
-        const result = parseBenchmarkOutput(stdout.toString(), stderr.toString(), exitCode);
-        resolve(result);
-      },
-    );
-  });
+  const result = await runner.exec(args, options);
+  return parseBenchmarkOutput(result.stdout, result.stderr, result.exitCode);
 }

@@ -1,6 +1,5 @@
 import path from 'path';
-import {execFile} from 'child_process';
-import {ensure7ZipExecutable} from './downloader.js';
+import {getDefaultRunner} from './runner.js';
 import type {CalculateHashOptions, CalculateHashResult, HashAlgorithm, HashItem} from './types.js';
 
 /**
@@ -198,40 +197,18 @@ export async function calculateHash(
     finalOptions = options;
   }
 
-  const workingDirectory = finalOptions?.workingDir || process.cwd();
-  const execPath = finalOptions?.executablePath || (await ensure7ZipExecutable(finalOptions?.downloadOptions));
+  const runner = finalOptions?.runner || getDefaultRunner();
   const args = buildCalculateHashArgs(targetPath, finalOptions);
+  const result = await runner.exec(args, finalOptions);
 
-  return new Promise((resolve, reject) => {
-    execFile(
-      execPath,
-      args,
-      {
-        cwd: workingDirectory,
-        maxBuffer: 10 * 1024 * 1024,
-      },
-      (error, stdoutStr, stderrStr) => {
-        const stdout = stdoutStr.toString();
-        const stderr = stderrStr.toString();
-        const exitCode = error && typeof error.code === 'number' ? error.code : 0;
+  const {files, summary} = parseCalculateHashOutput(result.stdout);
 
-        if (error && exitCode > 1) {
-          return reject(
-            new Error(`7-Zip hash command failed with exit code ${exitCode}:\n${stderr || stdout || error.message}`),
-          );
-        }
-
-        const {files, summary} = parseCalculateHashOutput(stdout);
-
-        resolve({
-          targetPath,
-          files,
-          summary,
-          stdout,
-          stderr,
-          exitCode,
-        });
-      },
-    );
-  });
+  return {
+    targetPath,
+    files,
+    summary,
+    stdout: result.stdout,
+    stderr: result.stderr,
+    exitCode: result.exitCode,
+  };
 }

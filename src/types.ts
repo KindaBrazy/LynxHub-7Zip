@@ -1,5 +1,6 @@
 import type {Readable, Writable} from 'stream';
 import type {ChildProcess} from 'child_process';
+import type {ISevenZipRunner} from './runner.js';
 
 export type SupportedOS = 'win32' | 'linux' | 'darwin' | string;
 export type SupportedArch = 'x64' | 'ia32' | 'arm64' | 'arm' | string;
@@ -161,6 +162,11 @@ export interface CompressOptions {
    * Options for downloading 7-Zip binary if executablePath is not specified.
    */
   downloadOptions?: DownloadOptions;
+
+  /**
+   * Custom runner instance for executing 7-Zip CLI commands.
+   */
+  runner?: ISevenZipRunner;
 }
 
 export interface CompressResult {
@@ -296,6 +302,11 @@ export interface DecompressOptions {
    * Options for downloading 7-Zip binary if executablePath is not specified.
    */
   downloadOptions?: DownloadOptions;
+
+  /**
+   * Custom runner instance for executing 7-Zip CLI commands.
+   */
+  runner?: ISevenZipRunner;
 }
 
 export type ExtractOptions = DecompressOptions;
@@ -467,6 +478,11 @@ export interface ListArchiveOptions {
    * Options for downloading 7-Zip binary if executablePath is not specified.
    */
   downloadOptions?: DownloadOptions;
+
+  /**
+   * Custom runner instance for executing 7-Zip CLI commands.
+   */
+  runner?: ISevenZipRunner;
 }
 
 export interface ListArchiveResult {
@@ -553,6 +569,11 @@ export interface CalculateHashOptions {
    * Options for downloading 7-Zip binary if executablePath is not specified.
    */
   downloadOptions?: DownloadOptions;
+
+  /**
+   * Custom runner instance for executing 7-Zip CLI commands.
+   */
+  runner?: ISevenZipRunner;
 }
 
 export interface HashItem {
@@ -658,6 +679,11 @@ export interface TestArchiveOptions {
    * Options for downloading 7-Zip binary if executablePath is not specified.
    */
   downloadOptions?: DownloadOptions;
+
+  /**
+   * Custom runner instance for executing 7-Zip CLI commands.
+   */
+  runner?: ISevenZipRunner;
 }
 
 export interface TestArchiveResult {
@@ -746,6 +772,11 @@ export interface BenchmarkOptions {
    * Options for downloading 7-Zip binary if executablePath is not specified.
    */
   downloadOptions?: DownloadOptions;
+
+  /**
+   * Custom runner instance for executing 7-Zip CLI commands.
+   */
+  runner?: ISevenZipRunner;
 }
 
 export interface BenchmarkMetric {
@@ -876,6 +907,11 @@ export interface DeleteFromArchiveOptions {
    * Options for downloading 7-Zip binary if executablePath is not specified.
    */
   downloadOptions?: DownloadOptions;
+
+  /**
+   * Custom runner instance for executing 7-Zip CLI commands.
+   */
+  runner?: ISevenZipRunner;
 }
 
 export interface DeleteFromArchiveResult {
@@ -947,6 +983,11 @@ export interface RenameInArchiveOptions {
    * Options for downloading 7-Zip binary if executablePath is not specified.
    */
   downloadOptions?: DownloadOptions;
+
+  /**
+   * Custom runner instance for executing 7-Zip CLI commands.
+   */
+  runner?: ISevenZipRunner;
 }
 
 export interface RenameInArchiveResult {
@@ -1056,6 +1097,11 @@ export interface UpdateArchiveOptions {
    * Options for downloading 7-Zip binary if executablePath is not specified.
    */
   downloadOptions?: DownloadOptions;
+
+  /**
+   * Custom runner instance for executing 7-Zip CLI commands.
+   */
+  runner?: ISevenZipRunner;
 }
 
 export interface UpdateArchiveResult {
@@ -1112,6 +1158,7 @@ export interface GetSupportedFeaturesOptions {
   customArgs?: string[];
   executablePath?: string;
   downloadOptions?: DownloadOptions;
+  runner?: ISevenZipRunner;
 }
 
 export interface SupportedFeaturesResult {
@@ -1194,6 +1241,11 @@ export interface CompressStreamOptions {
    * Options for downloading 7-Zip binary if executablePath is not specified.
    */
   downloadOptions?: DownloadOptions;
+
+  /**
+   * Custom runner instance for executing 7-Zip CLI commands.
+   */
+  runner?: ISevenZipRunner;
 }
 
 export interface DecompressStreamOptions {
@@ -1236,6 +1288,11 @@ export interface DecompressStreamOptions {
    * Options for downloading 7-Zip binary if executablePath is not specified.
    */
   downloadOptions?: DownloadOptions;
+
+  /**
+   * Custom runner instance for executing 7-Zip CLI commands.
+   */
+  runner?: ISevenZipRunner;
 }
 
 export interface StreamDoneResult {

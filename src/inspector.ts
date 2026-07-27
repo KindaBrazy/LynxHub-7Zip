@@ -1,6 +1,5 @@
 import path from 'path';
-import {execFile} from 'child_process';
-import {ensure7ZipExecutable} from './downloader.js';
+import {getDefaultRunner} from './runner.js';
 import type {
   ArchiveItem,
   GetSupportedFeaturesOptions,
@@ -175,42 +174,21 @@ export async function listArchive(archivePath: string, options?: ListArchiveOpti
   }
 
   const workingDirectory = options?.workingDir || process.cwd();
-  const execPath = options?.executablePath || (await ensure7ZipExecutable(options?.downloadOptions));
+  const runner = options?.runner || getDefaultRunner();
   const resolvedArchivePath = path.resolve(workingDirectory, archivePath);
   const args = buildListArchiveArgs(archivePath, options);
+  const result = await runner.exec(args, options);
 
-  return new Promise((resolve, reject) => {
-    execFile(
-      execPath,
-      args,
-      {
-        cwd: workingDirectory,
-        maxBuffer: 10 * 1024 * 1024,
-      },
-      (error, stdoutStr, stderrStr) => {
-        const stdout = stdoutStr.toString();
-        const stderr = stderrStr.toString();
-        const exitCode = error && typeof error.code === 'number' ? error.code : 0;
+  const {items, rawInfo} = parseListArchiveOutput(result.stdout);
 
-        if (error && exitCode > 1) {
-          return reject(
-            new Error(`7-Zip list command failed with exit code ${exitCode}:\n${stderr || stdout || error.message}`),
-          );
-        }
-
-        const {items, rawInfo} = parseListArchiveOutput(stdout);
-
-        resolve({
-          archivePath: resolvedArchivePath,
-          items,
-          rawInfo,
-          stdout,
-          stderr,
-          exitCode,
-        });
-      },
-    );
-  });
+  return {
+    archivePath: resolvedArchivePath,
+    items,
+    rawInfo,
+    stdout: result.stdout,
+    stderr: result.stderr,
+    exitCode: result.exitCode,
+  };
 }
 
 /**
@@ -370,37 +348,15 @@ export function parseGetSupportedFeaturesOutput(stdout: string): {
  * @param options Configuration options.
  */
 export async function getSupportedFeatures(options?: GetSupportedFeaturesOptions): Promise<SupportedFeaturesResult> {
-  const workingDirectory = options?.workingDir || process.cwd();
-  const execPath = options?.executablePath || (await ensure7ZipExecutable(options?.downloadOptions));
+  const runner = options?.runner || getDefaultRunner();
   const args = buildGetSupportedFeaturesArgs(options);
+  const result = await runner.exec(args, options);
+  const parsed = parseGetSupportedFeaturesOutput(result.stdout);
 
-  return new Promise((resolve, reject) => {
-    execFile(
-      execPath,
-      args,
-      {
-        cwd: workingDirectory,
-        maxBuffer: 10 * 1024 * 1024,
-      },
-      (error, stdoutStr, stderrStr) => {
-        const stdout = stdoutStr.toString();
-        const stderr = stderrStr.toString();
-        const exitCode = error && typeof error.code === 'number' ? error.code : 0;
-
-        if (error && exitCode > 1) {
-          const msg = stderr || stdout || error.message;
-          return reject(new Error(`7-Zip getSupportedFeatures (7z i) failed with exit code ${exitCode}:\n${msg}`));
-        }
-
-        const parsed = parseGetSupportedFeaturesOutput(stdout);
-
-        resolve({
-          ...parsed,
-          stdout,
-          stderr,
-          exitCode,
-        });
-      },
-    );
-  });
+  return {
+    ...parsed,
+    stdout: result.stdout,
+    stderr: result.stderr,
+    exitCode: result.exitCode,
+  };
 }

@@ -18,11 +18,7 @@ export {
   extractBinaryIfNeeded,
   ensure7ZipExecutable,
 } from './downloader.js';
-export {
-  compress,
-  createSFX,
-  compressStream,
-} from './compressor.js';
+export {compress, createSFX, compressStream} from './compressor.js';
 export {decompress, extract, decompressStream} from './decompressor.js';
 export {
   listArchive,
@@ -33,8 +29,4 @@ export {
 export {calculateHash, parseCalculateHashOutput} from './hasher.js';
 export {testArchive, parseTestArchiveOutput} from './tester.js';
 export {runBenchmark, parseBenchmarkOutput} from './benchmarker.js';
-export {
-  deleteFromArchive,
-  renameInArchive,
-  updateArchive,
-} from './editor.js';
+export {deleteFromArchive, renameInArchive, updateArchive} from './editor.js';

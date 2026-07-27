@@ -1,11 +1,7 @@
 import {describe, it, expect, beforeAll, afterAll} from 'vitest';
 import fs from 'fs';
 import path from 'path';
-import {
-  compress,
-  CommandCompiler,
-  ensure7ZipExecutable,
-} from './index.js';
+import {compress, CommandCompiler, ensure7ZipExecutable} from './index.js';
 
 describe('Compress Module', () => {
   it('should infer correct format from file extension', () => {

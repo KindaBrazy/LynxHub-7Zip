@@ -14,7 +14,6 @@ import type {
 
 export const buildListArchiveArgs = CommandCompiler.listArchive;
 
-
 /**
  * Parses 7-Zip `l -slt` stdout into structured items and raw archive metadata.
  */
@@ -137,7 +136,6 @@ export async function listArchive(archivePath: string, options?: ListArchiveOpti
 }
 
 export const buildGetSupportedFeaturesArgs = CommandCompiler.getSupportedFeatures;
-
 
 /**
  * Parses `7z i` stdout into structured formats, codecs, hashers, and version metadata.

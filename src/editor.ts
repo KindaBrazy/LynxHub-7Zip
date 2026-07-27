@@ -39,8 +39,6 @@ function normalizeRenamePairs(renames: RenamePair | RenamePair[]): Array<{from: 
   return [{from: renames.from, to: renames.to}];
 }
 
-
-
 /**
  * Deletes files or folders from an existing archive without full unpack/re-pack (`7z d`).
  *
@@ -118,8 +116,6 @@ export async function renameInArchive(
     exitCode: result.exitCode,
   };
 }
-
-
 
 /**
  * Updates or adds files in an existing archive (`7z u`).

@@ -4,7 +4,6 @@ import type {BenchmarkMetric, BenchmarkOptions, BenchmarkResult} from './types.j
 
 export const buildBenchmarkArgs = CommandCompiler.benchmark;
 
-
 /**
  * Parses raw stdout text from `7z b` into a structured BenchmarkResult object.
  */

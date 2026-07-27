@@ -15,7 +15,6 @@ import type {
 export const buildDecompressArgs = CommandCompiler.decompress;
 export const buildDecompressStreamArgs = CommandCompiler.decompressStream;
 
-
 /**
  * Decompresses (extracts) an archive file using 7-Zip CLI binary.
  *
@@ -84,8 +83,6 @@ export async function decompress(
  * Alias for `decompress`.
  */
 export const extract = decompress;
-
-
 
 /**
  * Decompresses archive streams or files in-memory using 7-Zip CLI (`-so`, `-si`).

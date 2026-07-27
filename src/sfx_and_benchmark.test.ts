@@ -1,10 +1,5 @@
 import {describe, it, expect} from 'vitest';
-import {
-  CommandCompiler,
-  parseBenchmarkOutput,
-  runBenchmark,
-  ensure7ZipExecutable,
-} from './index.js';
+import {CommandCompiler, parseBenchmarkOutput, runBenchmark, ensure7ZipExecutable} from './index.js';
 
 describe('SFX & Benchmarking Module', () => {
   describe('Unit Tests: SFX Argument Building', () => {

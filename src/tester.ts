@@ -5,7 +5,6 @@ import type {TestArchiveOptions, TestArchiveResult} from './types.js';
 
 export const buildTestArchiveArgs = CommandCompiler.testArchive;
 
-
 /**
  * Parses 7-Zip `t` stdout and exit code to determine archive health and metadata.
  */

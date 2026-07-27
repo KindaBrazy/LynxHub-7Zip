@@ -5,7 +5,6 @@ import type {CalculateHashOptions, CalculateHashResult, HashAlgorithm, HashItem}
 
 export const buildCalculateHashArgs = CommandCompiler.calculateHash;
 
-
 /**
  * Parses 7-Zip `h` stdout into structured HashItem[] and summary map.
  */

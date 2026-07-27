@@ -18,7 +18,6 @@ export const mapCompressionLevel = CommandCompiler.mapCompressionLevel;
 export const buildCompressArgs = CommandCompiler.compress;
 export const buildCompressStreamArgs = CommandCompiler.compressStream;
 
-
 /**
  * Compresses files or directories using 7-Zip CLI binary.
  *
@@ -71,8 +70,6 @@ export async function createSFX(
   };
   return compress(input, outputArchive, sfxOptions);
 }
-
-
 
 /**
  * Compresses data or file streams in-memory using 7-Zip CLI (`-si`, `-so`).

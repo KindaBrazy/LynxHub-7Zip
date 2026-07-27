@@ -700,11 +700,7 @@ export class CommandCompiler {
   /**
    * Constructs CLI arguments for 7-Zip update (`7z u`).
    */
-  static updateArchive(
-    archivePath: string,
-    targets?: string | string[],
-    options?: UpdateArchiveOptions,
-  ): string[] {
+  static updateArchive(archivePath: string, targets?: string | string[], options?: UpdateArchiveOptions): string[] {
     const args: string[] = ['u'];
 
     const format = options?.format || options?.archiveFormat;

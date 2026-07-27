@@ -173,6 +173,15 @@ export function buildCompressArgs(
     args.push(`-mmt=${options.threads}`);
   }
 
+  // Self-Extracting Archive switch -sfx
+  if (options?.sfx !== undefined && options?.sfx !== false) {
+    if (typeof options.sfx === 'string' && options.sfx.trim() !== '') {
+      args.push(`-sfx${options.sfx}`);
+    } else {
+      args.push('-sfx');
+    }
+  }
+
   // Always assume Yes to prompts (non-interactive)
   args.push('-y');
 
@@ -242,4 +251,23 @@ export async function compress(
       },
     );
   });
+}
+
+/**
+ * Creates a Self-Extracting (.exe) archive using 7-Zip CLI binary.
+ *
+ * @param input Single file/directory path or array of paths to compress.
+ * @param outputArchive Target SFX executable path (typically ends in .exe).
+ * @param options Optional configuration parameters.
+ */
+export async function createSFX(
+  input: string | string[],
+  outputArchive: string,
+  options?: CompressOptions,
+): Promise<CompressResult> {
+  const sfxOptions: CompressOptions = {
+    ...options,
+    sfx: options?.sfx ?? true,
+  };
+  return compress(input, outputArchive, sfxOptions);
 }

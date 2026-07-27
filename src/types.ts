@@ -138,6 +138,13 @@ export interface CompressOptions {
   threads?: number | string;
 
   /**
+   * Generate Self-Extracting executable archive (-sfx[module]).
+   * If true, generates a standalone executable archive (-sfx).
+   * If a string is provided, specifies custom SFX module path or name (e.g. '7z.sfx' or '7zCon.sfx').
+   */
+  sfx?: boolean | string;
+
+  /**
    * Additional raw 7-Zip CLI arguments.
    */
   customArgs?: string[];
@@ -675,6 +682,126 @@ export interface TestArchiveResult {
    * Total uncompressed size in bytes verified inside archive (if parsed from output).
    */
   totalSize?: number;
+
+  /**
+   * Standard output from 7-Zip CLI process.
+   */
+  stdout: string;
+
+  /**
+   * Standard error from 7-Zip CLI process.
+   */
+  stderr: string;
+
+  /**
+   * Exit code of 7-Zip CLI process.
+   */
+  exitCode: number;
+}
+
+/* ========================================================================== */
+/* CPU/RAM Benchmarking Types (runBenchmark)                                 */
+/* ========================================================================== */
+
+export interface BenchmarkOptions {
+  /**
+   * Number of benchmark iterations/passes (e.g. 1, 2, 5).
+   */
+  iterations?: number;
+
+  /**
+   * Dictionary size for benchmark (e.g. '22', '24', '16m', '64m').
+   */
+  dictionarySize?: string;
+
+  /**
+   * Number of CPU threads to use for benchmarking (e.g. 2, 4, 'on', 'off').
+   */
+  threads?: number | string;
+
+  /**
+   * Compression method to benchmark (e.g. 'LZMA', 'LZMA2', '*').
+   */
+  method?: string;
+
+  /**
+   * Working directory for process execution.
+   */
+  workingDir?: string;
+
+  /**
+   * Additional raw 7-Zip CLI arguments.
+   */
+  customArgs?: string[];
+
+  /**
+   * Path to custom 7-Zip executable. If omitted, automatically resolved/downloaded.
+   */
+  executablePath?: string;
+
+  /**
+   * Options for downloading 7-Zip binary if executablePath is not specified.
+   */
+  downloadOptions?: DownloadOptions;
+}
+
+export interface BenchmarkMetric {
+  /**
+   * Speed in KiB/s.
+   */
+  speedKiBs?: number;
+
+  /**
+   * CPU usage percentage (e.g. 382).
+   */
+  usagePercent?: number;
+
+  /**
+   * Rating in MIPS (Million Instructions Per Second) per CPU usage (R/U).
+   */
+  ratingMips?: number;
+
+  /**
+   * Overall / average rating in MIPS.
+   */
+  ratingMipsAvg?: number;
+}
+
+export interface BenchmarkResult {
+  /**
+   * Total host system RAM in MB (if reported by 7-Zip CLI).
+   */
+  ramSize?: number;
+
+  /**
+   * Total host system CPU hardware threads (if reported by 7-Zip CLI).
+   */
+  cpuThreads?: number;
+
+  /**
+   * RAM usage during benchmark run in MB (if reported by 7-Zip CLI).
+   */
+  ramUsage?: number;
+
+  /**
+   * Compression performance metrics.
+   */
+  compressing?: BenchmarkMetric;
+
+  /**
+   * Decompression performance metrics.
+   */
+  decompressing?: BenchmarkMetric;
+
+  /**
+   * Total combined benchmark summary score.
+   */
+  total?: BenchmarkMetric;
+
+  /**
+   * Dictionary of raw parsed properties / header info from benchmark output.
+   */
+  rawInfo?: Record<string, string>;
 
   /**
    * Standard output from 7-Zip CLI process.

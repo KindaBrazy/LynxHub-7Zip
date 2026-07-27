@@ -1,56 +1,10 @@
 import path from 'path';
 import {getDefaultRunner} from './runner.js';
+import {CommandCompiler} from './compiler.js';
 import type {CalculateHashOptions, CalculateHashResult, HashAlgorithm, HashItem} from './types.js';
 
-/**
- * Constructs command line argument array for 7-Zip `h` (hash) command.
- */
-export function buildCalculateHashArgs(targetPath: string | string[], options?: CalculateHashOptions): string[] {
-  const args: string[] = ['h'];
+export const buildCalculateHashArgs = CommandCompiler.calculateHash;
 
-  // Hash type switch -scrc<algorithm> (default: SHA256)
-  const hashType = options?.hashType || options?.hashAlgorithm || 'SHA256';
-  args.push(`-scrc${hashType}`);
-
-  // Non-interactive switch
-  args.push('-y');
-
-  // Recurse subdirectories -r
-  if (options?.recursive === false) {
-    args.push('-r-');
-  } else {
-    args.push('-r');
-  }
-
-  // Include file patterns -ir!
-  if (options?.include) {
-    const includes = Array.isArray(options.include) ? options.include : [options.include];
-    for (const pattern of includes) {
-      args.push(`-ir!${pattern}`);
-    }
-  }
-
-  // Exclude file patterns -xr!
-  if (options?.exclude) {
-    const excludes = Array.isArray(options.exclude) ? options.exclude : [options.exclude];
-    for (const pattern of excludes) {
-      args.push(`-xr!${pattern}`);
-    }
-  }
-
-  // Custom user CLI flags
-  if (options?.customArgs && options.customArgs.length > 0) {
-    args.push(...options.customArgs);
-  }
-
-  // Positional parameters: target path(s)
-  const targets = Array.isArray(targetPath) ? targetPath : [targetPath];
-  for (const target of targets) {
-    args.push(target);
-  }
-
-  return args;
-}
 
 /**
  * Parses 7-Zip `h` stdout into structured HashItem[] and summary map.

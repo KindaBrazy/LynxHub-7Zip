@@ -4,25 +4,23 @@ import path from 'path';
 import {Readable} from 'stream';
 import {
   getSupportedFeatures,
-  buildGetSupportedFeaturesArgs,
   parseGetSupportedFeaturesOutput,
   compressStream,
-  buildCompressStreamArgs,
   decompressStream,
-  buildDecompressStreamArgs,
   compress,
+  CommandCompiler,
 } from './index.js';
 
 describe('Stream & Feature Info Module', () => {
   describe('Unit Tests: Argument Builders', () => {
     it('should build getSupportedFeatures arguments', () => {
-      const infoArgs = buildGetSupportedFeaturesArgs({customArgs: ['-slt']});
+      const infoArgs = CommandCompiler.getSupportedFeatures({customArgs: ['-slt']});
       expect(infoArgs[0]).toBe('i');
       expect(infoArgs).toContain('-slt');
     });
 
     it('should build compressStream arguments', () => {
-      const compArgs = buildCompressStreamArgs({format: 'xz', level: 9, streamName: 'file.txt'}, true);
+      const compArgs = CommandCompiler.compressStream({format: 'xz', level: 9, streamName: 'file.txt'}, true);
       expect(compArgs).toContain('a');
       expect(compArgs).toContain('-txz');
       expect(compArgs).toContain('-so');
@@ -30,7 +28,7 @@ describe('Stream & Feature Info Module', () => {
     });
 
     it('should build decompressStream arguments', () => {
-      const decompArgs = buildDecompressStreamArgs({format: 'xz'}, true);
+      const decompArgs = CommandCompiler.decompressStream({format: 'xz'}, true);
       expect(decompArgs).toContain('e');
       expect(decompArgs).toContain('-so');
       expect(decompArgs).toContain('-si');

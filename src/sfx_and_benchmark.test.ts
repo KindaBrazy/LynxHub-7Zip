@@ -1,7 +1,6 @@
 import {describe, it, expect} from 'vitest';
 import {
-  buildCompressArgs,
-  buildBenchmarkArgs,
+  CommandCompiler,
   parseBenchmarkOutput,
   runBenchmark,
   ensure7ZipExecutable,
@@ -10,29 +9,29 @@ import {
 describe('SFX & Benchmarking Module', () => {
   describe('Unit Tests: SFX Argument Building', () => {
     it('should include -sfx when sfx: true', () => {
-      const sfxBoolArgs = buildCompressArgs('input.txt', 'output.exe', {sfx: true});
+      const sfxBoolArgs = CommandCompiler.compress('input.txt', 'output.exe', {sfx: true});
       expect(sfxBoolArgs).toContain('-sfx');
     });
 
     it('should include custom sfx module when string is provided', () => {
-      const sfxCustomArgs = buildCompressArgs('input.txt', 'output.exe', {sfx: '7zCon.sfx'});
+      const sfxCustomArgs = CommandCompiler.compress('input.txt', 'output.exe', {sfx: '7zCon.sfx'});
       expect(sfxCustomArgs).toContain('-sfx7zCon.sfx');
     });
 
     it('should not include -sfx when sfx: false', () => {
-      const sfxFalseArgs = buildCompressArgs('input.txt', 'output.7z', {sfx: false});
+      const sfxFalseArgs = CommandCompiler.compress('input.txt', 'output.7z', {sfx: false});
       expect(sfxFalseArgs.some(arg => arg.startsWith('-sfx'))).toBe(false);
     });
   });
 
   describe('Unit Tests: Benchmark Argument Building', () => {
     it('should build default benchmark arguments', () => {
-      const benchArgsDefault = buildBenchmarkArgs();
+      const benchArgsDefault = CommandCompiler.benchmark();
       expect(benchArgsDefault).toEqual(['b']);
     });
 
     it('should build customized benchmark arguments', () => {
-      const benchArgsFull = buildBenchmarkArgs({
+      const benchArgsFull = CommandCompiler.benchmark({
         iterations: 2,
         dictionarySize: '22',
         threads: 4,

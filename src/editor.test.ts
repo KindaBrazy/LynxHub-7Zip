@@ -5,18 +5,16 @@ import {
   compress,
   listArchive,
   deleteFromArchive,
-  buildDeleteFromArchiveArgs,
   renameInArchive,
-  buildRenameInArchiveArgs,
   updateArchive,
-  buildUpdateArchiveArgs,
+  CommandCompiler,
   ensure7ZipExecutable,
 } from './index.js';
 
 describe('Archive Editing Module', () => {
   describe('Unit Tests: Argument Builders', () => {
     it('should build deleteFromArchive arguments accurately', () => {
-      const delArgs = buildDeleteFromArchiveArgs('archive.7z', ['file1.txt', 'file2.txt'], {
+      const delArgs = CommandCompiler.deleteFromArchive('archive.7z', ['file1.txt', 'file2.txt'], {
         password: 'secretPassword',
         format: '7z',
         exclude: '*.tmp',
@@ -33,7 +31,7 @@ describe('Archive Editing Module', () => {
     });
 
     it('should build renameInArchive arguments accurately', () => {
-      const rnArgs = buildRenameInArchiveArgs(
+      const rnArgs = CommandCompiler.renameInArchive(
         'archive.7z',
         [{from: 'old1.txt', to: 'new1.txt'}, ['folder/old2.txt', 'folder/new2.txt']],
         {
@@ -54,7 +52,7 @@ describe('Archive Editing Module', () => {
     });
 
     it('should build updateArchive arguments accurately', () => {
-      const updateArgs = buildUpdateArchiveArgs('archive.7z', ['updated.txt'], {
+      const updateArgs = CommandCompiler.updateArchive('archive.7z', ['updated.txt'], {
         level: 9,
         password: 'p',
         encryptHeader: true,

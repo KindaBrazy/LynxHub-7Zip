@@ -1,34 +1,9 @@
 import {getDefaultRunner} from './runner.js';
+import {CommandCompiler} from './compiler.js';
 import type {BenchmarkMetric, BenchmarkOptions, BenchmarkResult} from './types.js';
 
-/**
- * Constructs command line argument array for 7-Zip benchmark CLI (`7z b`).
- */
-export function buildBenchmarkArgs(options?: BenchmarkOptions): string[] {
-  const args: string[] = ['b'];
+export const buildBenchmarkArgs = CommandCompiler.benchmark;
 
-  if (options?.iterations !== undefined && options.iterations > 0) {
-    args.push(options.iterations.toString());
-  }
-
-  if (options?.dictionarySize) {
-    args.push(`-md=${options.dictionarySize}`);
-  }
-
-  if (options?.threads !== undefined) {
-    args.push(`-mmt=${options.threads}`);
-  }
-
-  if (options?.method) {
-    args.push(`-mm=${options.method}`);
-  }
-
-  if (options?.customArgs && options.customArgs.length > 0) {
-    args.push(...options.customArgs);
-  }
-
-  return args;
-}
 
 /**
  * Parses raw stdout text from `7z b` into a structured BenchmarkResult object.

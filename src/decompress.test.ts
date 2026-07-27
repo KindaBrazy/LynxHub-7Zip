@@ -1,12 +1,12 @@
 import {describe, it, expect, beforeAll, afterAll} from 'vitest';
 import fs from 'fs';
 import path from 'path';
-import {compress, decompress, extract, buildDecompressArgs, ensure7ZipExecutable} from './index.js';
+import {compress, decompress, extract, CommandCompiler, ensure7ZipExecutable} from './index.js';
 
 describe('Decompress Module', () => {
   describe('Argument Building', () => {
     it('should build default decompress arguments', () => {
-      const defaultArgs = buildDecompressArgs('archive.7z', './out');
+      const defaultArgs = CommandCompiler.decompress('archive.7z', './out');
       expect(defaultArgs[0]).toBe('x');
       expect(defaultArgs.some(a => a.startsWith('-o'))).toBe(true);
       expect(defaultArgs).toContain('-aoa');
@@ -14,21 +14,21 @@ describe('Decompress Module', () => {
     });
 
     it('should handle flat mode and preservePaths options', () => {
-      const flatArgs = buildDecompressArgs('archive.zip', './out', {mode: 'flat'});
+      const flatArgs = CommandCompiler.decompress('archive.zip', './out', {mode: 'flat'});
       expect(flatArgs[0]).toBe('e');
 
-      const preservePathsFalseArgs = buildDecompressArgs('archive.zip', './out', {preservePaths: false});
+      const preservePathsFalseArgs = CommandCompiler.decompress('archive.zip', './out', {preservePaths: false});
       expect(preservePathsFalseArgs[0]).toBe('e');
     });
 
     it('should handle testOnly mode arguments', () => {
-      const testArgs = buildDecompressArgs('archive.7z', './out', {testOnly: true});
+      const testArgs = CommandCompiler.decompress('archive.7z', './out', {testOnly: true});
       expect(testArgs[0]).toBe('t');
       expect(testArgs.some(a => a.startsWith('-o'))).toBe(false);
     });
 
     it('should include custom switches correctly', () => {
-      const customOptionsArgs = buildDecompressArgs('archive.7z', './outDir', {
+      const customOptionsArgs = CommandCompiler.decompress('archive.7z', './outDir', {
         password: 'myPassword123',
         format: 'zip',
         overwriteMode: 'skip',

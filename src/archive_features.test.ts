@@ -4,21 +4,19 @@ import path from 'path';
 import {
   compress,
   listArchive,
-  buildListArchiveArgs,
   parseListArchiveOutput,
   calculateHash,
-  buildCalculateHashArgs,
   parseCalculateHashOutput,
   testArchive,
-  buildTestArchiveArgs,
   parseTestArchiveOutput,
+  CommandCompiler,
   ensure7ZipExecutable,
 } from './index.js';
 
 describe('Archive Features Module', () => {
   describe('Unit Tests: Argument Builders', () => {
     it('should build listArchive arguments accurately', () => {
-      const listArgs = buildListArchiveArgs('my_archive.7z', {
+      const listArgs = CommandCompiler.listArchive('my_archive.7z', {
         password: 'secretPassword',
         format: 'zip',
         exclude: '*.tmp',
@@ -31,7 +29,7 @@ describe('Archive Features Module', () => {
     });
 
     it('should build calculateHash arguments accurately', () => {
-      const hashArgs = buildCalculateHashArgs('file.txt', {
+      const hashArgs = CommandCompiler.calculateHash('file.txt', {
         hashType: 'SHA256',
         recursive: true,
       });
@@ -40,7 +38,7 @@ describe('Archive Features Module', () => {
     });
 
     it('should build testArchive arguments accurately', () => {
-      const testArgs = buildTestArchiveArgs('my_archive.7z', {
+      const testArgs = CommandCompiler.testArchive('my_archive.7z', {
         password: 'myPass',
         threads: 4,
       });

@@ -1,5 +1,6 @@
 import path from 'path';
 import {getDefaultRunner} from './runner.js';
+import {CommandCompiler} from './compiler.js';
 import type {
   ArchiveItem,
   GetSupportedFeaturesOptions,
@@ -11,64 +12,8 @@ import type {
   SupportedHasherInfo,
 } from './types.js';
 
-/**
- * Constructs command line argument array for 7-Zip `l` (list) command.
- */
-export function buildListArchiveArgs(archivePath: string, options?: ListArchiveOptions): string[] {
-  const args: string[] = ['l'];
+export const buildListArchiveArgs = CommandCompiler.listArchive;
 
-  // Detailed technical list mode -slt (default: true)
-  const useSlt = options?.slt ?? options?.technical ?? true;
-  if (useSlt) {
-    args.push('-slt');
-  }
-
-  // Format override -t
-  if (options?.format) {
-    args.push(`-t${options.format}`);
-  }
-
-  // Password -p
-  if (options?.password !== undefined) {
-    args.push(`-p${options.password}`);
-  }
-
-  // Non-interactive switch
-  args.push('-y');
-
-  // Recurse subdirectories -r
-  if (options?.recursive === false) {
-    args.push('-r-');
-  } else {
-    args.push('-r');
-  }
-
-  // Include file patterns -ir!
-  if (options?.include) {
-    const includes = Array.isArray(options.include) ? options.include : [options.include];
-    for (const pattern of includes) {
-      args.push(`-ir!${pattern}`);
-    }
-  }
-
-  // Exclude file patterns -xr!
-  if (options?.exclude) {
-    const excludes = Array.isArray(options.exclude) ? options.exclude : [options.exclude];
-    for (const pattern of excludes) {
-      args.push(`-xr!${pattern}`);
-    }
-  }
-
-  // Custom user CLI flags
-  if (options?.customArgs && options.customArgs.length > 0) {
-    args.push(...options.customArgs);
-  }
-
-  // Positional parameter: archive file path
-  args.push(archivePath);
-
-  return args;
-}
 
 /**
  * Parses 7-Zip `l -slt` stdout into structured items and raw archive metadata.
@@ -191,18 +136,8 @@ export async function listArchive(archivePath: string, options?: ListArchiveOpti
   };
 }
 
-/**
- * Constructs CLI arguments for `7z i` (information/features command).
- */
-export function buildGetSupportedFeaturesArgs(options?: GetSupportedFeaturesOptions): string[] {
-  const args: string[] = ['i'];
+export const buildGetSupportedFeaturesArgs = CommandCompiler.getSupportedFeatures;
 
-  if (options?.customArgs && options.customArgs.length > 0) {
-    args.push(...options.customArgs);
-  }
-
-  return args;
-}
 
 /**
  * Parses `7z i` stdout into structured formats, codecs, hashers, and version metadata.

@@ -3,34 +3,32 @@ import fs from 'fs';
 import path from 'path';
 import {
   compress,
-  buildCompressArgs,
-  inferFormatFromExtension,
-  mapCompressionLevel,
+  CommandCompiler,
   ensure7ZipExecutable,
 } from './index.js';
 
 describe('Compress Module', () => {
   it('should infer correct format from file extension', () => {
-    expect(inferFormatFromExtension('test.7z')).toBe('7z');
-    expect(inferFormatFromExtension('archive.zip')).toBe('zip');
-    expect(inferFormatFromExtension('file.tar.gz')).toBe('gzip');
-    expect(inferFormatFromExtension('file.tar.xz')).toBe('xz');
-    expect(inferFormatFromExtension('file.unknown')).toBe('7z');
+    expect(CommandCompiler.inferFormatFromExtension('test.7z')).toBe('7z');
+    expect(CommandCompiler.inferFormatFromExtension('archive.zip')).toBe('zip');
+    expect(CommandCompiler.inferFormatFromExtension('file.tar.gz')).toBe('gzip');
+    expect(CommandCompiler.inferFormatFromExtension('file.tar.xz')).toBe('xz');
+    expect(CommandCompiler.inferFormatFromExtension('file.unknown')).toBe('7z');
   });
 
   it('should map compression levels correctly', () => {
-    expect(mapCompressionLevel('ultra')).toBe('-mx=9');
-    expect(mapCompressionLevel('fastest')).toBe('-mx=1');
-    expect(mapCompressionLevel(5)).toBe('-mx=5');
-    expect(mapCompressionLevel()).toBeUndefined();
+    expect(CommandCompiler.mapCompressionLevel('ultra')).toBe('-mx=9');
+    expect(CommandCompiler.mapCompressionLevel('fastest')).toBe('-mx=1');
+    expect(CommandCompiler.mapCompressionLevel(5)).toBe('-mx=5');
+    expect(CommandCompiler.mapCompressionLevel()).toBeUndefined();
   });
 
   it('should build compression arguments accurately', () => {
-    const defaultArgs = buildCompressArgs('inputDir', 'output.7z');
+    const defaultArgs = CommandCompiler.compress('inputDir', 'output.7z');
     expect(defaultArgs).toContain('-t7z');
     expect(defaultArgs).toContain('-r');
 
-    const customArgs = buildCompressArgs(['file1.txt', 'file2.txt'], 'archive.zip', {
+    const customArgs = CommandCompiler.compress(['file1.txt', 'file2.txt'], 'archive.zip', {
       level: 'maximum',
       password: 'secret',
       exclude: ['*.tmp'],

@@ -1,4 +1,5 @@
 export * from './types.js';
+export {CommandCompiler} from './compiler.js';
 export {
   DefaultSevenZipRunner,
   MockSevenZipRunner,
@@ -20,29 +21,20 @@ export {
 export {
   compress,
   createSFX,
-  buildCompressArgs,
   compressStream,
-  buildCompressStreamArgs,
-  inferFormatFromExtension,
-  mapCompressionLevel,
 } from './compressor.js';
-export {decompress, extract, buildDecompressArgs, decompressStream, buildDecompressStreamArgs} from './decompressor.js';
+export {decompress, extract, decompressStream} from './decompressor.js';
 export {
   listArchive,
-  buildListArchiveArgs,
   parseListArchiveOutput,
   getSupportedFeatures,
-  buildGetSupportedFeaturesArgs,
   parseGetSupportedFeaturesOutput,
 } from './inspector.js';
-export {calculateHash, buildCalculateHashArgs, parseCalculateHashOutput} from './hasher.js';
-export {testArchive, buildTestArchiveArgs, parseTestArchiveOutput} from './tester.js';
-export {runBenchmark, buildBenchmarkArgs, parseBenchmarkOutput} from './benchmarker.js';
+export {calculateHash, parseCalculateHashOutput} from './hasher.js';
+export {testArchive, parseTestArchiveOutput} from './tester.js';
+export {runBenchmark, parseBenchmarkOutput} from './benchmarker.js';
 export {
   deleteFromArchive,
-  buildDeleteFromArchiveArgs,
   renameInArchive,
-  buildRenameInArchiveArgs,
   updateArchive,
-  buildUpdateArchiveArgs,
 } from './editor.js';

@@ -1,6 +1,6 @@
 import path from 'path';
 import {getDefaultRunner} from './runner.js';
-import {mapCompressionLevel} from './compressor.js';
+import {CommandCompiler} from './compiler.js';
 import type {
   DeleteFromArchiveOptions,
   DeleteFromArchiveResult,
@@ -10,6 +10,8 @@ import type {
   UpdateArchiveOptions,
   UpdateArchiveResult,
 } from './types.js';
+
+export const buildDeleteFromArchiveArgs = CommandCompiler.deleteFromArchive;
 
 /**
  * Normalizes single or array of targets into an array of string paths.
@@ -37,70 +39,7 @@ function normalizeRenamePairs(renames: RenamePair | RenamePair[]): Array<{from: 
   return [{from: renames.from, to: renames.to}];
 }
 
-/**
- * Constructs command line argument array for 7-Zip `d` (delete) command.
- */
-export function buildDeleteFromArchiveArgs(
-  archivePath: string,
-  targets: string | string[],
-  options?: DeleteFromArchiveOptions,
-): string[] {
-  const args: string[] = ['d'];
 
-  // Archive format switch -t
-  if (options?.format) {
-    args.push(`-t${options.format}`);
-  }
-
-  // Password -p
-  if (options?.password !== undefined) {
-    args.push(`-p${options.password}`);
-  }
-
-  // Recurse subdirectories -r (default: true)
-  if (options?.recursive === false) {
-    args.push('-r-');
-  } else {
-    args.push('-r');
-  }
-
-  // Include file patterns -ir!
-  if (options?.include) {
-    const includes = normalizeTargets(options.include);
-    for (const pattern of includes) {
-      args.push(`-ir!${pattern}`);
-    }
-  }
-
-  // Exclude file patterns -xr!
-  if (options?.exclude) {
-    const excludes = normalizeTargets(options.exclude);
-    for (const pattern of excludes) {
-      args.push(`-xr!${pattern}`);
-    }
-  }
-
-  // Temporary working directory -w
-  if (options?.workDir) {
-    args.push(`-w${options.workDir}`);
-  }
-
-  // Non-interactive switch
-  args.push('-y');
-
-  // Custom user CLI flags
-  if (options?.customArgs && options.customArgs.length > 0) {
-    args.push(...options.customArgs);
-  }
-
-  // Positional parameters: archive path and file/directory targets to delete
-  args.push(archivePath);
-
-  const targetList = normalizeTargets(targets);
-  args.push(...targetList);
-
-  return args;
-}
 
 /**
  * Deletes files or folders from an existing archive without full unpack/re-pack (`7z d`).
@@ -141,53 +80,8 @@ export async function deleteFromArchive(
 /**
  * Constructs command line argument array for 7-Zip `rn` (rename) command.
  */
-export function buildRenameInArchiveArgs(
-  archivePath: string,
-  renames: RenamePair | RenamePair[],
-  options?: RenameInArchiveOptions,
-): string[] {
-  const args: string[] = ['rn'];
-
-  // Archive format switch -t
-  if (options?.format) {
-    args.push(`-t${options.format}`);
-  }
-
-  // Password -p
-  if (options?.password !== undefined) {
-    args.push(`-p${options.password}`);
-  }
-
-  // Recurse subdirectories -r (default: true)
-  if (options?.recursive === false) {
-    args.push('-r-');
-  } else {
-    args.push('-r');
-  }
-
-  // Temporary working directory -w
-  if (options?.workDir) {
-    args.push(`-w${options.workDir}`);
-  }
-
-  // Non-interactive switch
-  args.push('-y');
-
-  // Custom user CLI flags
-  if (options?.customArgs && options.customArgs.length > 0) {
-    args.push(...options.customArgs);
-  }
-
-  // Positional parameters: archive path and source/destination pairs
-  args.push(archivePath);
-
-  const pairs = normalizeRenamePairs(renames);
-  for (const pair of pairs) {
-    args.push(pair.from, pair.to);
-  }
-
-  return args;
-}
+export const buildRenameInArchiveArgs = CommandCompiler.renameInArchive;
+export const buildUpdateArchiveArgs = CommandCompiler.updateArchive;
 
 /**
  * Renames files or folders inside an existing archive (`7z rn`).
@@ -225,94 +119,7 @@ export async function renameInArchive(
   };
 }
 
-/**
- * Constructs command line argument array for 7-Zip `u` (update) command.
- */
-export function buildUpdateArchiveArgs(
-  archivePath: string,
-  targets?: string | string[],
-  options?: UpdateArchiveOptions,
-): string[] {
-  const args: string[] = ['u'];
 
-  // Archive format switch -t
-  const format = options?.format || options?.archiveFormat;
-  if (format) {
-    args.push(`-t${format}`);
-  }
-
-  // Compression level switch -mx
-  const levelFlag = mapCompressionLevel(options?.level ?? options?.compressionLevel);
-  if (levelFlag) {
-    args.push(levelFlag);
-  }
-
-  // Password -p
-  if (options?.password !== undefined) {
-    args.push(`-p${options.password}`);
-  }
-
-  // Encrypt header switch -mhe=on/off
-  if (options?.encryptHeader !== undefined) {
-    args.push(`-mhe=${options.encryptHeader ? 'on' : 'off'}`);
-  }
-
-  // Recurse subdirectories -r (default: true)
-  if (options?.recursive === false) {
-    args.push('-r-');
-  } else {
-    args.push('-r');
-  }
-
-  // Include file patterns -ir!
-  if (options?.include) {
-    const includes = normalizeTargets(options.include);
-    for (const pattern of includes) {
-      args.push(`-ir!${pattern}`);
-    }
-  }
-
-  // Exclude file patterns -xr!
-  if (options?.exclude) {
-    const excludes = normalizeTargets(options.exclude);
-    for (const pattern of excludes) {
-      args.push(`-xr!${pattern}`);
-    }
-  }
-
-  // Delete source files after archiving -sdel
-  if (options?.deleteSource) {
-    args.push('-sdel');
-  }
-
-  // Custom update action specification -u<spec>
-  if (options?.updateSwitch) {
-    args.push(options.updateSwitch.startsWith('-u') ? options.updateSwitch : `-u${options.updateSwitch}`);
-  }
-
-  // Temporary working directory -w
-  if (options?.workDir) {
-    args.push(`-w${options.workDir}`);
-  }
-
-  // Non-interactive switch
-  args.push('-y');
-
-  // Custom user CLI flags
-  if (options?.customArgs && options.customArgs.length > 0) {
-    args.push(...options.customArgs);
-  }
-
-  // Positional parameters: archive path and file/directory targets to update
-  args.push(archivePath);
-
-  const targetList = normalizeTargets(targets);
-  if (targetList.length > 0) {
-    args.push(...targetList);
-  }
-
-  return args;
-}
 
 /**
  * Updates or adds files in an existing archive (`7z u`).

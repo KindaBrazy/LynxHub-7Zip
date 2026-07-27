@@ -6,7 +6,7 @@
 
 > Modern, zero-config, cross-platform 7-Zip wrapper for Node.js and TypeScript.
 
-**@lynxhub/7zip** brings the full speed and feature set of the native 7-Zip CLI to Node.js. It automatically downloads and manages the official 7-Zip executable for Windows, macOS, and Linux out-of-the-box—no pre-installed system binaries required.
+**@lynxhub/7zip** brings the full speed and feature set of the native 7-Zip CLI to Node.js. It automatically downloads and manages the official 7-Zip executable for Windows, macOS, and Linux out-of-the-box; no pre-installed system binaries required.
 
 ---
 

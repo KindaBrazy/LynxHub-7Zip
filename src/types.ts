@@ -314,3 +314,380 @@ export interface DecompressResult {
 }
 
 export type ExtractResult = DecompressResult;
+
+/* ========================================================================== */
+/* Archive Inspection Types (listArchive)                                     */
+/* ========================================================================== */
+
+export interface ArchiveItem {
+  /**
+   * Relative path of the file or folder inside the archive.
+   */
+  path: string;
+
+  /**
+   * Uncompressed file size in bytes (if available).
+   */
+  size?: number;
+
+  /**
+   * Compressed / packed size in bytes (if available).
+   */
+  packedSize?: number;
+
+  /**
+   * Last modified timestamp string (e.g. "2026-01-01 12:00:00").
+   */
+  modified?: string;
+
+  /**
+   * Creation timestamp string (if available).
+   */
+  created?: string;
+
+  /**
+   * Last access timestamp string (if available).
+   */
+  accessed?: string;
+
+  /**
+   * Attributes string (e.g. "A", "D", "RSHD").
+   */
+  attributes?: string;
+
+  /**
+   * Indicates whether the item is encrypted.
+   */
+  encrypted?: boolean;
+
+  /**
+   * Checksum / CRC hash string of the item (if available).
+   */
+  crc?: string;
+
+  /**
+   * Compression method / algorithm (e.g. "LZMA2:12k", "Deflate").
+   */
+  method?: string;
+
+  /**
+   * Block index inside solid archive.
+   */
+  block?: number;
+
+  /**
+   * Comment string attached to item (if available).
+   */
+  comment?: string;
+
+  /**
+   * Host operating system name (e.g. "FAT", "NTFS", "Unix").
+   */
+  hostOS?: string;
+
+  /**
+   * Characteristics string (if available).
+   */
+  characteristics?: string;
+
+  /**
+   * True if item is a directory/folder.
+   */
+  isDir?: boolean;
+
+  /**
+   * Raw key-value metadata map parsed from 7-Zip -slt output.
+   */
+  raw: Record<string, string>;
+}
+
+export interface ListArchiveOptions {
+  /**
+   * Password for password-protected archive (-p<password>).
+   */
+  password?: string;
+
+  /**
+   * Enable technical detailed listing output (-slt).
+   * Default: true
+   */
+  slt?: boolean;
+
+  /**
+   * Alias for slt.
+   */
+  technical?: boolean;
+
+  /**
+   * Archive format override (e.g. '7z', 'zip', 'tar', 'rar').
+   */
+  format?: ArchiveFormat;
+
+  /**
+   * Recursively match wildcards/subdirectories (-r) (default: true).
+   */
+  recursive?: boolean;
+
+  /**
+   * File pattern or array of patterns to include (-ir!).
+   */
+  include?: string | string[];
+
+  /**
+   * File pattern or array of patterns to exclude (-xr!).
+   */
+  exclude?: string | string[];
+
+  /**
+   * Working directory for process execution.
+   */
+  workingDir?: string;
+
+  /**
+   * Additional raw 7-Zip CLI arguments.
+   */
+  customArgs?: string[];
+
+  /**
+   * Path to custom 7-Zip executable. If omitted, automatically resolved/downloaded.
+   */
+  executablePath?: string;
+
+  /**
+   * Options for downloading 7-Zip binary if executablePath is not specified.
+   */
+  downloadOptions?: DownloadOptions;
+}
+
+export interface ListArchiveResult {
+  /**
+   * Absolute path to the inspected archive file.
+   */
+  archivePath: string;
+
+  /**
+   * List of files and folders contained inside the archive.
+   */
+  items: ArchiveItem[];
+
+  /**
+   * Technical archive-level properties (e.g. Type, Physical Size, Headers Size, Method, Solid, Blocks).
+   */
+  rawInfo: Record<string, string>;
+
+  /**
+   * Standard output from 7-Zip CLI process.
+   */
+  stdout: string;
+
+  /**
+   * Standard error from 7-Zip CLI process.
+   */
+  stderr: string;
+
+  /**
+   * Exit code of 7-Zip CLI process.
+   */
+  exitCode: number;
+}
+
+/* ========================================================================== */
+/* File Hashing Types (calculateHash)                                         */
+/* ========================================================================== */
+
+export type HashAlgorithm = 'CRC32' | 'CRC64' | 'SHA1' | 'SHA256' | '*' | string;
+
+export interface CalculateHashOptions {
+  /**
+   * Hash algorithm to calculate (e.g. 'CRC32', 'CRC64', 'SHA1', 'SHA256', '*').
+   * Default: 'SHA256'
+   */
+  hashType?: HashAlgorithm;
+
+  /**
+   * Alias for hashType.
+   */
+  hashAlgorithm?: HashAlgorithm;
+
+  /**
+   * Recursively process subdirectories (-r) (default: true).
+   */
+  recursive?: boolean;
+
+  /**
+   * File pattern or array of patterns to include (-ir!).
+   */
+  include?: string | string[];
+
+  /**
+   * File pattern or array of patterns to exclude (-xr!).
+   */
+  exclude?: string | string[];
+
+  /**
+   * Working directory for process execution.
+   */
+  workingDir?: string;
+
+  /**
+   * Additional raw 7-Zip CLI arguments.
+   */
+  customArgs?: string[];
+
+  /**
+   * Path to custom 7-Zip executable. If omitted, automatically resolved/downloaded.
+   */
+  executablePath?: string;
+
+  /**
+   * Options for downloading 7-Zip binary if executablePath is not specified.
+   */
+  downloadOptions?: DownloadOptions;
+}
+
+export interface HashItem {
+  /**
+   * Relative or absolute path of the hashed file.
+   */
+  path: string;
+
+  /**
+   * File size in bytes.
+   */
+  size?: number;
+
+  /**
+   * Dictionary of calculated hash values per algorithm (e.g. { CRC32: 'A1B2C3D4', SHA256: '...' }).
+   */
+  hashes: Record<string, string>;
+}
+
+export interface CalculateHashResult {
+  /**
+   * Input target path(s) passed to calculateHash.
+   */
+  targetPath: string | string[];
+
+  /**
+   * List of files with calculated hash values.
+   */
+  files: HashItem[];
+
+  /**
+   * Overall summary hash values for all processed data (e.g. { CRC32: '...', SHA256: '...' }).
+   */
+  summary: Record<string, string>;
+
+  /**
+   * Standard output from 7-Zip CLI process.
+   */
+  stdout: string;
+
+  /**
+   * Standard error from 7-Zip CLI process.
+   */
+  stderr: string;
+
+  /**
+   * Exit code of 7-Zip CLI process.
+   */
+  exitCode: number;
+}
+
+/* ========================================================================== */
+/* Archive Integrity Testing Types (testArchive)                              */
+/* ========================================================================== */
+
+export interface TestArchiveOptions {
+  /**
+   * Password for password-protected archive integrity test (-p<password>).
+   */
+  password?: string;
+
+  /**
+   * Archive format override (e.g. '7z', 'zip', 'tar', 'rar').
+   */
+  format?: ArchiveFormat;
+
+  /**
+   * Recursively test matching wildcards/subdirectories (-r) (default: true).
+   */
+  recursive?: boolean;
+
+  /**
+   * File pattern or array of patterns to include (-ir!).
+   */
+  include?: string | string[];
+
+  /**
+   * File pattern or array of patterns to exclude (-xr!).
+   */
+  exclude?: string | string[];
+
+  /**
+   * Number of CPU threads to use (-mmt).
+   */
+  threads?: number | string;
+
+  /**
+   * Working directory for process execution.
+   */
+  workingDir?: string;
+
+  /**
+   * Additional raw 7-Zip CLI arguments.
+   */
+  customArgs?: string[];
+
+  /**
+   * Path to custom 7-Zip executable. If omitted, automatically resolved/downloaded.
+   */
+  executablePath?: string;
+
+  /**
+   * Options for downloading 7-Zip binary if executablePath is not specified.
+   */
+  downloadOptions?: DownloadOptions;
+}
+
+export interface TestArchiveResult {
+  /**
+   * True if archive is healthy and password (if any) is correct ("Everything is Ok").
+   */
+  valid: boolean;
+
+  /**
+   * Absolute path to the tested archive file.
+   */
+  archivePath: string;
+
+  /**
+   * Total number of files verified inside archive (if parsed from output).
+   */
+  testedFilesCount?: number;
+
+  /**
+   * Total number of folders verified inside archive (if parsed from output).
+   */
+  testedFoldersCount?: number;
+
+  /**
+   * Total uncompressed size in bytes verified inside archive (if parsed from output).
+   */
+  totalSize?: number;
+
+  /**
+   * Standard output from 7-Zip CLI process.
+   */
+  stdout: string;
+
+  /**
+   * Standard error from 7-Zip CLI process.
+   */
+  stderr: string;
+
+  /**
+   * Exit code of 7-Zip CLI process.
+   */
+  exitCode: number;
+}

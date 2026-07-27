@@ -1,3 +1,6 @@
+import type {Readable, Writable} from 'stream';
+import type {ChildProcess} from 'child_process';
+
 export type SupportedOS = 'win32' | 'linux' | 'darwin' | string;
 export type SupportedArch = 'x64' | 'ia32' | 'arm64' | 'arm' | string;
 
@@ -1081,3 +1084,170 @@ export interface UpdateArchiveResult {
    */
   exitCode: number;
 }
+
+export interface SupportedFormatInfo {
+  name: string;
+  flags?: string;
+  extensions: string[];
+  signature?: string;
+  raw: string;
+}
+
+export interface SupportedCodecInfo {
+  name: string;
+  id?: string;
+  flags?: string;
+  raw: string;
+}
+
+export interface SupportedHasherInfo {
+  name: string;
+  id?: string;
+  size?: string;
+  raw: string;
+}
+
+export interface GetSupportedFeaturesOptions {
+  workingDir?: string;
+  customArgs?: string[];
+  executablePath?: string;
+  downloadOptions?: DownloadOptions;
+}
+
+export interface SupportedFeaturesResult {
+  version?: string;
+  formats: SupportedFormatInfo[];
+  codecs: SupportedCodecInfo[];
+  hashers: SupportedHasherInfo[];
+  rawInfo: Record<string, string>;
+  stdout: string;
+  stderr: string;
+  exitCode: number;
+}
+
+export type StreamInput = Readable | Buffer | Uint8Array | string | string[] | null | undefined;
+
+export interface CompressStreamOptions {
+  /**
+   * Target archive format for output stream (e.g. 'xz', '7z', 'zip', 'gzip', 'bzip2', 'tar').
+   * Default: 'xz'
+   */
+  format?: ArchiveFormat;
+
+  /**
+   * Compression level (0 to 9, or 'store', 'fastest', 'fast', 'normal', 'maximum', 'ultra').
+   */
+  level?: CompressionLevel;
+
+  /**
+   * Compression method (e.g. 'LZMA2', 'LZMA', 'Deflate').
+   */
+  method?: string;
+
+  /**
+   * Dictionary size (e.g. '16m', '64m').
+   */
+  dictionarySize?: string;
+
+  /**
+   * Password for archive encryption.
+   */
+  password?: string;
+
+  /**
+   * Encrypt archive header / filenames (-mhe=on/off, 7z format).
+   */
+  encryptHeader?: boolean;
+
+  /**
+   * Virtual stream filename inside archive when streaming stdin (-si<name>).
+   */
+  streamName?: string;
+
+  /**
+   * Target output dummy archive filename argument required by 7-Zip CLI when streaming (-so).
+   * Defaults to 'dummy.<format>' or 'dummy.xz'.
+   */
+  archiveName?: string;
+
+  /**
+   * CPU threads (-mmt).
+   */
+  threads?: number;
+
+  /**
+   * Working directory for process execution.
+   */
+  workingDir?: string;
+
+  /**
+   * Additional raw 7-Zip CLI arguments.
+   */
+  customArgs?: string[];
+
+  /**
+   * Path to custom 7-Zip executable. If omitted, automatically resolved/downloaded.
+   */
+  executablePath?: string;
+
+  /**
+   * Options for downloading 7-Zip binary if executablePath is not specified.
+   */
+  downloadOptions?: DownloadOptions;
+}
+
+export interface DecompressStreamOptions {
+  /**
+   * Format override (-t). Required when decompressing from raw stdin if auto-detection is unavailable.
+   */
+  format?: ArchiveFormat;
+
+  /**
+   * Password for protected archives.
+   */
+  password?: string;
+
+  /**
+   * CPU threads (-mmt).
+   */
+  threads?: number;
+
+  /**
+   * Path to input archive file on disk (if not reading from stream/Buffer).
+   */
+  archivePath?: string;
+
+  /**
+   * Working directory for process execution.
+   */
+  workingDir?: string;
+
+  /**
+   * Additional raw 7-Zip CLI arguments.
+   */
+  customArgs?: string[];
+
+  /**
+   * Path to custom 7-Zip executable. If omitted, automatically resolved/downloaded.
+   */
+  executablePath?: string;
+
+  /**
+   * Options for downloading 7-Zip binary if executablePath is not specified.
+   */
+  downloadOptions?: DownloadOptions;
+}
+
+export interface StreamDoneResult {
+  exitCode: number;
+  stdout: string;
+  stderr: string;
+}
+
+export interface CompressStreamResult extends Readable {
+  stdin: Writable;
+  process: ChildProcess;
+  promise: Promise<StreamDoneResult>;
+}
+
+export type DecompressStreamResult = CompressStreamResult;

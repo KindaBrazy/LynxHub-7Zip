@@ -1,8 +1,16 @@
 import fs from 'fs';
 import path from 'path';
-import {execFile} from 'child_process';
+import {execFile, spawn} from 'child_process';
+import {PassThrough, Readable} from 'stream';
 import {ensure7ZipExecutable} from './downloader.js';
-import type {DecompressOptions, DecompressResult} from './types.js';
+import type {
+  DecompressOptions,
+  DecompressResult,
+  DecompressStreamOptions,
+  DecompressStreamResult,
+  StreamDoneResult,
+  StreamInput,
+} from './types.js';
 
 /**
  * Constructs command line argument array for 7-Zip executable based on DecompressOptions.
@@ -201,3 +209,192 @@ export async function decompress(
  * Alias for `decompress`.
  */
 export const extract = decompress;
+
+/**
+ * Constructs CLI arguments for 7-Zip stream decompression (`e -so ...`).
+ *
+ * @param options Configuration options.
+ * @param isStreamInput True if reading from stdin (-si), false if reading from disk file path.
+ * @param archivePath Optional path to archive file on disk.
+ */
+export function buildDecompressStreamArgs(
+  options?: DecompressStreamOptions,
+  isStreamInput: boolean = true,
+  archivePath?: string,
+): string[] {
+  const args: string[] = ['e'];
+
+  // Stream output switch -so
+  args.push('-so');
+
+  // Stream input switch -si
+  if (isStreamInput) {
+    args.push('-si');
+  }
+
+  // Format override -t
+  if (options?.format) {
+    args.push(`-t${options.format}`);
+  }
+
+  // Password -p
+  if (options?.password !== undefined) {
+    args.push(`-p${options.password}`);
+  }
+
+  // CPU threads -mmt
+  if (options?.threads !== undefined) {
+    args.push(`-mmt=${options.threads}`);
+  }
+
+  // Non-interactive switch
+  args.push('-y');
+
+  // Custom user CLI flags
+  if (options?.customArgs && options.customArgs.length > 0) {
+    args.push(...options.customArgs);
+  }
+
+  // Positional parameter: archive file path when not reading from stdin
+  if (!isStreamInput && archivePath) {
+    args.push(archivePath);
+  }
+
+  return args;
+}
+
+/**
+ * Decompresses archive streams or files in-memory using 7-Zip CLI (`-so`, `-si`).
+ * Returns standard Readable stream enriched with `.stdin`, `.process`, and `.promise`.
+ *
+ * Supported signatures:
+ * - `decompressStream(readableStream, options)`
+ * - `decompressStream(buffer, options)`
+ * - `decompressStream('archive.xz', options)`
+ * - `decompressStream(options)` -> user writes compressed data into returned `.stdin`
+ *
+ * @param inputOrOptions Compressed stream/Buffer/file path OR options object.
+ * @param optionsArg Configuration options if input is passed as 1st argument.
+ */
+export function decompressStream(
+  inputOrOptions?: StreamInput | DecompressStreamOptions,
+  optionsArg?: DecompressStreamOptions,
+): DecompressStreamResult {
+  let input: StreamInput;
+  let options: DecompressStreamOptions | undefined;
+
+  if (
+    inputOrOptions &&
+    typeof inputOrOptions === 'object' &&
+    !Buffer.isBuffer(inputOrOptions) &&
+    !(inputOrOptions instanceof Uint8Array) &&
+    !(inputOrOptions instanceof Readable)
+  ) {
+    input = undefined;
+    options = inputOrOptions as DecompressStreamOptions;
+  } else {
+    input = inputOrOptions as StreamInput;
+    options = optionsArg;
+  }
+
+  let isStreamInput = true;
+  let archivePath: string | undefined = options?.archivePath;
+
+  if (typeof input === 'string') {
+    isStreamInput = false;
+    archivePath = input;
+  }
+
+  const workingDir = options?.workingDir || process.cwd();
+  const args = buildDecompressStreamArgs(options, isStreamInput, archivePath);
+
+  const inStream = new PassThrough();
+  const outStream = new Readable({
+    read() {},
+  }) as DecompressStreamResult;
+
+  let resolvePromise: (res: StreamDoneResult) => void;
+  let rejectPromise: (err: Error) => void;
+
+  const donePromise = new Promise<StreamDoneResult>((resolve, reject) => {
+    resolvePromise = resolve;
+    rejectPromise = reject;
+  });
+
+  (outStream as any).stdin = inStream;
+  (outStream as any).promise = donePromise;
+
+  const stdoutChunks: Buffer[] = [];
+  const stderrChunks: Buffer[] = [];
+
+  let execPathPromise: Promise<string>;
+  if (options?.executablePath) {
+    execPathPromise = Promise.resolve(options.executablePath);
+  } else {
+    execPathPromise = ensure7ZipExecutable(options?.downloadOptions);
+  }
+
+  execPathPromise
+    .then(execPath => {
+      const child = spawn(execPath, args, {
+        cwd: workingDir,
+        stdio: ['pipe', 'pipe', 'pipe'],
+      });
+
+      (outStream as any).process = child;
+
+      inStream.pipe(child.stdin);
+
+      child.stdout.on('data', chunk => {
+        const buf = Buffer.from(chunk);
+        stdoutChunks.push(buf);
+        outStream.push(buf);
+      });
+
+      child.stderr.on('data', chunk => {
+        stderrChunks.push(Buffer.from(chunk));
+      });
+
+      child.on('error', err => {
+        outStream.destroy(err);
+        rejectPromise(err);
+      });
+
+      child.on('close', code => {
+        const exitCode = code ?? 0;
+        const stdoutStr = Buffer.concat(stdoutChunks).toString();
+        const stderrStr = Buffer.concat(stderrChunks).toString();
+
+        outStream.push(null);
+
+        if (exitCode > 1) {
+          const errorMsg = `7-Zip stream decompression failed with exit code ${exitCode}:\n${stderrStr || stdoutStr}`;
+          const err = new Error(errorMsg);
+          outStream.destroy(err);
+          rejectPromise(err);
+        } else {
+          resolvePromise({
+            exitCode,
+            stdout: stdoutStr,
+            stderr: stderrStr,
+          });
+        }
+      });
+
+      // Handle piped / buffer input if provided
+      if (isStreamInput && input) {
+        if (input instanceof Readable) {
+          input.pipe(inStream);
+        } else if (Buffer.isBuffer(input) || input instanceof Uint8Array) {
+          inStream.write(input);
+          inStream.end();
+        }
+      }
+    })
+    .catch(err => {
+      outStream.destroy(err);
+      rejectPromise(err);
+    });
+
+  return outStream;
+}

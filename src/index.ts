@@ -7,9 +7,24 @@ export {
   extractBinaryIfNeeded,
   ensure7ZipExecutable,
 } from './downloader.js';
-export {compress, createSFX, buildCompressArgs, inferFormatFromExtension, mapCompressionLevel} from './compressor.js';
-export {decompress, extract, buildDecompressArgs} from './decompressor.js';
-export {listArchive, buildListArchiveArgs, parseListArchiveOutput} from './inspector.js';
+export {
+  compress,
+  createSFX,
+  buildCompressArgs,
+  compressStream,
+  buildCompressStreamArgs,
+  inferFormatFromExtension,
+  mapCompressionLevel,
+} from './compressor.js';
+export {decompress, extract, buildDecompressArgs, decompressStream, buildDecompressStreamArgs} from './decompressor.js';
+export {
+  listArchive,
+  buildListArchiveArgs,
+  parseListArchiveOutput,
+  getSupportedFeatures,
+  buildGetSupportedFeaturesArgs,
+  parseGetSupportedFeaturesOutput,
+} from './inspector.js';
 export {calculateHash, buildCalculateHashArgs, parseCalculateHashOutput} from './hasher.js';
 export {testArchive, buildTestArchiveArgs, parseTestArchiveOutput} from './tester.js';
 export {runBenchmark, buildBenchmarkArgs, parseBenchmarkOutput} from './benchmarker.js';

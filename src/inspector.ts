@@ -1,7 +1,16 @@
 import path from 'path';
 import {execFile} from 'child_process';
 import {ensure7ZipExecutable} from './downloader.js';
-import type {ArchiveItem, ListArchiveOptions, ListArchiveResult} from './types.js';
+import type {
+  ArchiveItem,
+  GetSupportedFeaturesOptions,
+  ListArchiveOptions,
+  ListArchiveResult,
+  SupportedCodecInfo,
+  SupportedFeaturesResult,
+  SupportedFormatInfo,
+  SupportedHasherInfo,
+} from './types.js';
 
 /**
  * Constructs command line argument array for 7-Zip `l` (list) command.
@@ -195,6 +204,198 @@ export async function listArchive(archivePath: string, options?: ListArchiveOpti
           archivePath: resolvedArchivePath,
           items,
           rawInfo,
+          stdout,
+          stderr,
+          exitCode,
+        });
+      },
+    );
+  });
+}
+
+/**
+ * Constructs CLI arguments for `7z i` (information/features command).
+ */
+export function buildGetSupportedFeaturesArgs(options?: GetSupportedFeaturesOptions): string[] {
+  const args: string[] = ['i'];
+
+  if (options?.customArgs && options.customArgs.length > 0) {
+    args.push(...options.customArgs);
+  }
+
+  return args;
+}
+
+/**
+ * Parses `7z i` stdout into structured formats, codecs, hashers, and version metadata.
+ */
+export function parseGetSupportedFeaturesOutput(stdout: string): {
+  version?: string;
+  formats: SupportedFormatInfo[];
+  codecs: SupportedCodecInfo[];
+  hashers: SupportedHasherInfo[];
+  rawInfo: Record<string, string>;
+} {
+  const formats: SupportedFormatInfo[] = [];
+  const codecs: SupportedCodecInfo[] = [];
+  const hashers: SupportedHasherInfo[] = [];
+  const rawInfo: Record<string, string> = {};
+
+  const lines = stdout.split(/\r?\n/);
+  let version: string | undefined;
+
+  let currentSection: 'none' | 'formats' | 'codecs' | 'hashers' = 'none';
+
+  for (const rawLine of lines) {
+    const line = rawLine.trimEnd();
+
+    // Version banner line
+    if (!version && line.includes('7-Zip')) {
+      const match = line.match(/7-Zip\s*(\(r\))?\s*([\d\.]+(?:\s*\([^)]+\))?)/i);
+      if (match) {
+        version = match[2];
+      } else {
+        version = line.trim();
+      }
+    }
+
+    if (line.trim() === 'Formats:') {
+      currentSection = 'formats';
+      continue;
+    }
+
+    if (line.trim() === 'Codecs:') {
+      currentSection = 'codecs';
+      continue;
+    }
+
+    if (line.trim() === 'Hashers:') {
+      currentSection = 'hashers';
+      continue;
+    }
+
+    if (!line.trim()) {
+      continue;
+    }
+
+    if (currentSection === 'formats') {
+      const parts = line.trim().split(/\s+/);
+      if (parts.length >= 2) {
+        const flags = parts[0];
+        const name = parts[1];
+        const extensions: string[] = [];
+        let signature: string | undefined;
+
+        if (parts.length > 2) {
+          const rest = parts.slice(2);
+          const extParts: string[] = [];
+          const sigParts: string[] = [];
+
+          let parsingSig = false;
+          for (const item of rest) {
+            if (!parsingSig && (item.length <= 4 || item.startsWith('(') || item.endsWith(')'))) {
+              extParts.push(item.replace(/[()]/g, ''));
+            } else {
+              parsingSig = true;
+              sigParts.push(item);
+            }
+          }
+
+          if (extParts.length > 0) {
+            extensions.push(...extParts);
+          }
+          if (sigParts.length > 0) {
+            signature = sigParts.join(' ');
+          }
+        }
+
+        formats.push({
+          name,
+          flags,
+          extensions,
+          signature,
+          raw: line,
+        });
+      }
+    } else if (currentSection === 'codecs') {
+      const parts = line.trim().split(/\s+/);
+      if (parts.length >= 2) {
+        const flags = parts.length >= 3 ? parts[0] : undefined;
+        const id = parts.length >= 3 ? parts[1] : parts[0];
+        const name = parts.length >= 3 ? parts.slice(2).join(' ') : parts[1];
+
+        codecs.push({
+          name,
+          id,
+          flags,
+          raw: line,
+        });
+      }
+    } else if (currentSection === 'hashers') {
+      const parts = line.trim().split(/\s+/);
+      if (parts.length >= 2) {
+        const size = parts.length >= 3 ? parts[0] : undefined;
+        const id = parts.length >= 3 ? parts[1] : parts[0];
+        const name = parts.length >= 3 ? parts.slice(2).join(' ') : parts[1];
+
+        hashers.push({
+          name,
+          id,
+          size,
+          raw: line,
+        });
+      }
+    }
+  }
+
+  rawInfo['formatsCount'] = String(formats.length);
+  rawInfo['codecsCount'] = String(codecs.length);
+  rawInfo['hashersCount'] = String(hashers.length);
+  if (version) {
+    rawInfo['version'] = version;
+  }
+
+  return {
+    version,
+    formats,
+    codecs,
+    hashers,
+    rawInfo,
+  };
+}
+
+/**
+ * Inspects installed codecs, formats, and binary features supported by the 7-Zip executable (`7z i`).
+ *
+ * @param options Configuration options.
+ */
+export async function getSupportedFeatures(options?: GetSupportedFeaturesOptions): Promise<SupportedFeaturesResult> {
+  const workingDirectory = options?.workingDir || process.cwd();
+  const execPath = options?.executablePath || (await ensure7ZipExecutable(options?.downloadOptions));
+  const args = buildGetSupportedFeaturesArgs(options);
+
+  return new Promise((resolve, reject) => {
+    execFile(
+      execPath,
+      args,
+      {
+        cwd: workingDirectory,
+        maxBuffer: 10 * 1024 * 1024,
+      },
+      (error, stdoutStr, stderrStr) => {
+        const stdout = stdoutStr.toString();
+        const stderr = stderrStr.toString();
+        const exitCode = error && typeof error.code === 'number' ? error.code : 0;
+
+        if (error && exitCode > 1) {
+          const msg = stderr || stdout || error.message;
+          return reject(new Error(`7-Zip getSupportedFeatures (7z i) failed with exit code ${exitCode}:\n${msg}`));
+        }
+
+        const parsed = parseGetSupportedFeaturesOutput(stdout);
+
+        resolve({
+          ...parsed,
           stdout,
           stderr,
           exitCode,

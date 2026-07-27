@@ -13,3 +13,11 @@ export {listArchive, buildListArchiveArgs, parseListArchiveOutput} from './inspe
 export {calculateHash, buildCalculateHashArgs, parseCalculateHashOutput} from './hasher.js';
 export {testArchive, buildTestArchiveArgs, parseTestArchiveOutput} from './tester.js';
 export {runBenchmark, buildBenchmarkArgs, parseBenchmarkOutput} from './benchmarker.js';
+export {
+  deleteFromArchive,
+  buildDeleteFromArchiveArgs,
+  renameInArchive,
+  buildRenameInArchiveArgs,
+  updateArchive,
+  buildUpdateArchiveArgs,
+} from './editor.js';

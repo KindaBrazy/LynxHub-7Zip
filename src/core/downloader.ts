@@ -115,16 +115,22 @@ export function selectAssetForPlatform(
   assets: ReleaseAsset[],
   targetOS: SupportedOS,
   targetArch: SupportedArch,
+  variant: '7za' | '7zr' = '7za',
 ): ReleaseAsset {
   const normArch = normalizeArch(targetArch);
 
   if (targetOS === 'win32') {
-    // 7zr.exe is standalone Windows console executable
-    const standaloneAsset = assets.find(a => a.name.toLowerCase() === '7zr.exe');
-    if (standaloneAsset) return standaloneAsset;
+    if (variant === '7zr') {
+      const standaloneAsset = assets.find(a => a.name.toLowerCase() === '7zr.exe');
+      if (standaloneAsset) return standaloneAsset;
+    } else {
+      // Default: '7za'
+      const extraAsset = assets.find(a => a.name.toLowerCase().includes('extra.7z'));
+      if (extraAsset) return extraAsset;
 
-    const extraAsset = assets.find(a => a.name.toLowerCase().includes('extra.7z'));
-    if (extraAsset) return extraAsset;
+      const standaloneAsset = assets.find(a => a.name.toLowerCase() === '7zr.exe');
+      if (standaloneAsset) return standaloneAsset;
+    }
 
     const exeAsset = assets.find(a => a.name.toLowerCase().endsWith('.exe') && a.name.toLowerCase().includes(normArch));
     if (exeAsset) return exeAsset;
@@ -197,11 +203,37 @@ export function extractBinaryIfNeeded(archivePath: string, extractDir: string, t
     }
   }
 
+  // 7z archive (.7z, e.g. extra.7z)
+  if (archivePath.toLowerCase().endsWith('.7z') || ext === '.7z') {
+    fs.mkdirSync(extractDir, {recursive: true});
+    const existingExtractors = ['7zr.exe', '7za.exe', '7z.exe', '7zz', '7zzs'];
+    let extractorPath: string | undefined;
+    for (const name of existingExtractors) {
+      const p = path.join(extractDir, name);
+      if (fs.existsSync(p) && fs.statSync(p).size > 0) {
+        extractorPath = p;
+        break;
+      }
+    }
+
+    if (extractorPath) {
+      try {
+        execSync(`"${extractorPath}" x "${archivePath}" -o"${extractDir}" -y`, {stdio: 'pipe'});
+      } catch (err) {
+        throw new Error(`Failed to extract 7z archive ${archivePath}: ${String(err)}`, {cause: err});
+      }
+    }
+  }
+
   // Fallback search in extract directory
-  const files = fs.readdirSync(extractDir);
-  const exeCandidate = files.find((f: string) => f === '7zz' || f === '7zzs' || f === '7zr.exe' || f === '7za.exe');
-  if (exeCandidate) {
-    return path.join(extractDir, exeCandidate);
+  if (fs.existsSync(extractDir)) {
+    const files = fs.readdirSync(extractDir);
+    const exeCandidate = files.find(
+      (f: string) => f === '7za.exe' || f === '7z.exe' || f === '7zz' || f === '7zzs' || f === '7zr.exe',
+    );
+    if (exeCandidate) {
+      return path.join(extractDir, exeCandidate);
+    }
   }
 
   return archivePath;
@@ -217,8 +249,14 @@ export async function ensure7ZipExecutable(options?: DownloadOptions): Promise<s
   const targetOS = options?.os || process.platform;
   const targetArch = options?.arch || process.arch;
   const targetDir = options?.targetPath || getDefaultDownloadPath();
+  const variant = options?.variant || '7za';
 
-  const expectedExecNames = targetOS === 'win32' ? ['7zr.exe', '7za.exe', '7z.exe'] : ['7zz', '7zzs'];
+  const expectedExecNames =
+    targetOS === 'win32'
+      ? variant === '7zr'
+        ? ['7zr.exe', '7za.exe', '7z.exe']
+        : ['7za.exe', '7z.exe', '7zr.exe']
+      : ['7zz', '7zzs'];
 
   // Check if executable already exists in target directory
   if (!options?.forceDownload && fs.existsSync(targetDir)) {
@@ -232,7 +270,7 @@ export async function ensure7ZipExecutable(options?: DownloadOptions): Promise<s
 
   // Fetch release info from GitHub at runtime
   const release = await fetchLatestRelease(options?.version);
-  const asset = selectAssetForPlatform(release.assets, targetOS, targetArch);
+  const asset = selectAssetForPlatform(release.assets, targetOS, targetArch, variant);
 
   fs.mkdirSync(targetDir, {recursive: true});
   const downloadedPath = path.join(targetDir, asset.name);
@@ -243,7 +281,24 @@ export async function ensure7ZipExecutable(options?: DownloadOptions): Promise<s
   }
 
   // Extract or relocate executable
-  const execPath = extractBinaryIfNeeded(downloadedPath, targetDir, targetOS);
+  let execPath = extractBinaryIfNeeded(downloadedPath, targetDir, targetOS);
+
+  // If extraction returned the .7z archive path itself because no extractor was present, fetch 7zr.exe to extract it
+  if (downloadedPath.toLowerCase().endsWith('.7z') && execPath === downloadedPath) {
+    const standaloneAsset = release.assets.find(a => a.name.toLowerCase() === '7zr.exe');
+    const zrPath = path.join(targetDir, '7zr.exe');
+    if (standaloneAsset && !fs.existsSync(zrPath)) {
+      await downloadFile(standaloneAsset.browser_download_url, zrPath);
+    }
+    if (fs.existsSync(zrPath)) {
+      try {
+        execSync(`"${zrPath}" x "${downloadedPath}" -o"${targetDir}" -y`, {stdio: 'pipe'});
+      } catch (err) {
+        throw new Error(`Failed to extract 7z archive ${downloadedPath}: ${String(err)}`, {cause: err});
+      }
+    }
+    execPath = extractBinaryIfNeeded(downloadedPath, targetDir, targetOS);
+  }
 
   // Ensure executable permissions on Unix-like systems
   if (targetOS !== 'win32' && fs.existsSync(execPath)) {

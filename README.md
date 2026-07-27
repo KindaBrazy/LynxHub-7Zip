@@ -168,13 +168,17 @@ await updateArchive('archive.7z', 'new-doc.pdf');
 > [!NOTE]
 > By default, `@lynxhub/7zip` automatically downloads and caches the required official 7-Zip binary for your operating system.
 
-If you prefer to use your own local system binary or pre-download the binary manually:
+If you prefer to specify binary download options or use a custom local system binary:
 
 ```typescript
 import { compress, ensure7ZipExecutable } from '@lynxhub/7zip';
 
-// Manually trigger binary resolution / download
-const executablePath = await ensure7ZipExecutable();
+// Manually trigger binary resolution / download with options.
+// Defaults to '7za' for full multi-format support (7z, zip, tar, gzip, bzip2, etc.).
+const executablePath = await ensure7ZipExecutable({
+  variant: '7za', // '7za' (default - multi-format) | '7zr' (7z format only)
+  targetPath: './bin'
+});
 
 // Use a custom system 7-Zip binary path
 await compress('./folder', 'output.7z', {

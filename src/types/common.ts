@@ -34,6 +34,12 @@ export interface DownloadOptions {
    */
   arch?: SupportedArch;
   /**
+   * Preferred 7-Zip binary variant to download:
+   * - '7za': Standalone 7-Zip console executable supporting 7z, ZIP, CAB, GZIP, BZIP2, TAR, etc. (Default)
+   * - '7zr': Light reduced 7-Zip console executable supporting 7z format only.
+   */
+  variant?: '7za' | '7zr';
+  /**
    * Force re-download even if executable already exists in target path.
    */
   forceDownload?: boolean;

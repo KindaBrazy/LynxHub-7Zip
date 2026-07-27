@@ -27,7 +27,7 @@
     "build": "tsc",
     "publishPackage": "npm run build && npm publish --access public",
     "start": "npm run build && node dist/index.js",
-    "fix-linter": "prettier --write src --list-different && eslint --fix src",
+    "linter": "prettier --write src --list-different && eslint --fix src",
     "typecheck": "tsc --noEmit -p tsconfig.json --composite false"
   },
   "devDependencies": {

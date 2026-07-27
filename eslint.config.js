@@ -1,6 +1,7 @@
 import eslint from '@eslint/js';
 import {defineConfig} from 'eslint/config';
 import globals from 'globals';
+import tsEslint from 'typescript-eslint';
 import eslintPluginPrettierRecommended from 'eslint-plugin-prettier/recommended';
 
 const MAX_LINE_LENGTH = 120;
@@ -12,6 +13,15 @@ export default defineConfig([
 
   eslint.configs.recommended,
   eslintPluginPrettierRecommended,
+  ...tsEslint.configs.recommended,
+  {
+    rules: {
+      '@typescript-eslint/ban-ts-comment': 'off',
+      '@typescript-eslint/no-explicit-any': 'off',
+      '@typescript-eslint/no-unused-vars': 'off',
+      '@typescript-eslint/explicit-function-return-type': 'off',
+    },
+  },
 
   {
     files: ['**/*.{js,jsx,mjs,cjs,ts,tsx}'],
@@ -35,6 +45,7 @@ export default defineConfig([
 
     rules: {
       'no-async-promise-executor': 'off',
+      '@typescript-eslint/no-unused-expressions': 'off',
 
       'max-len': ['error', {code: MAX_LINE_LENGTH, ignoreComments: true}],
 
